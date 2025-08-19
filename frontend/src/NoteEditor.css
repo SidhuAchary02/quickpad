@@ -1,0 +1,89 @@
+/* src/components/NoteEditor.css */
+.note-editor {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+}
+
+.editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.saving-indicator {
+  color: #4CAF50;
+  font-style: italic;
+}
+
+.copy-btn {
+  background: #2196F3;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.auth-form {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 30px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.auth-form p {
+  margin-bottom: 20px;
+}
+
+.password-input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.auth-btn {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.note-content {
+  width: 100%;
+  min-height: 500px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 50px;
+  font-size: 18px;
+}
+
+.error {
+  color: #f44336;
+}
