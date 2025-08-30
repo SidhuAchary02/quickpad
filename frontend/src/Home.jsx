@@ -1,7 +1,5 @@
 // src/components/Home.jsx
-import React from 'react';
-import { Link } from 'react-router-dom';
-import './Home.css';
+import "./Home.css";
 
 function Home() {
   return (
@@ -9,7 +7,15 @@ function Home() {
       <div className="home-content">
         <h1>Online Notepad</h1>
         <p className="tagline">Simple, secure, anonymous note-taking</p>
-        
+
+        <div>
+          <h2 className="text-black">
+            Type any URL like{" "}
+            <span className="font-bold text-blue-500 ">/your-note-id</span> to
+            create a note
+          </h2>
+        </div>
+
         <div className="features">
           <div className="feature">
             <h3>No Registration</h3>
@@ -27,11 +33,6 @@ function Home() {
             <h3>Auto-expiration</h3>
             <p>Notes automatically expire after 30 days for privacy</p>
           </div>
-        </div>
-        
-        <div className="cta">
-          <Link to="/new" className="create-btn">Create a New Note</Link>
-          <p className="hint">Or visit any URL like /your-note-id to create a note</p>
         </div>
       </div>
     </div>

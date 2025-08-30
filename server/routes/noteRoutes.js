@@ -1,4 +1,4 @@
-// src/routes/noteRoutes.js
+// routes/noteRoutes.js
 import { Router } from 'express';
 
 export function createNoteRoutes(noteController) {

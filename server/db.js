@@ -1,26 +1,13 @@
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import mongoose from "mongoose";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-export async function setupDatabase() {
-  const db = await open({
-    filename: path.join(__dirname, 'database.sqlite'),
-    driver: sqlite3.Database
-  });
-
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS notes (
-      id TEXT PRIMARY KEY,
-      content TEXT,
-      password_hash TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      expires_at DATETIME
-    )
-  `);
-
-  return db;
+async function connectDB() {
+    try {
+        await mongoose.connect(process.env.MONGODB_URL || 'mongodb+srv://Zworking:sidhu123@cluster0.muuu2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0');
+        console.log('✅ DB connected...');
+    } catch (error) {
+        console.error('❌ DB connection failed:', error.message);
+        process.exit(1);
+    }
 }
+
+export default connectDB;

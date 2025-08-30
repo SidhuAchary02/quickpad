@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import './NoteEditor.css';
+import { io } from 'socket.io-client';
 
 function NoteEditor() {
   const { id } = useParams();
@@ -16,91 +17,91 @@ function NoteEditor() {
   const [saveTimeout, setSaveTimeout] = useState(null);
   
   const textareaRef = useRef(null);
-  const isMountedRef = useRef(true); // Track if component is mounted
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
-    // Connect to WebSocket for this note
-    const newSocket = new WebSocket(`ws://localhost:5030/ws/${id}`);
-    
+    // Connect to Socket.IO server
+    const newSocket = io('http://localhost:5030'); // Fixed port
+
     // Handle successful connection
-    const handleOpen = () => {
+    newSocket.on('connect', () => {
       if (!isMountedRef.current) return;
-      console.log('WebSocket connection established');
+      console.log('Socket.IO connected:', newSocket.id);
       setSocket(newSocket);
-    };
-    
-    // Handle incoming messages
-    const handleMessage = (event) => {
-      if (!isMountedRef.current) return;
       
-      try {
-        const message = JSON.parse(event.data);
-        
-        if (message.type === 'init') {
-          setDocument(message.data);
-          setHasPassword(message.hasPassword);
-          setIsLoading(false);
-          
-          // If note is not password protected, set as authenticated
-          if (!message.hasPassword) {
-            setIsAuthenticated(true);
-          }
-        } else if (message.type === 'update') {
-          setDocument(message.data);
-        } else if (message.type === 'auth_required') {
-          setHasPassword(true);
-          setIsLoading(false);
-        } else if (message.type === 'auth_success') {
-          setIsAuthenticated(true);
-        } else if (message.type === 'auth_failed') {
-          setError('Invalid password');
-        }
-      } catch (error) {
-        console.error('Error parsing message:', error);
-      }
-    };
-    
-    // Handle connection close
-    const handleClose = () => {
+      // Join the note room
+      newSocket.emit('join-note', id);
+    });
+
+    // Handle initial note content
+    newSocket.on('note-content', (data) => {
       if (!isMountedRef.current) return;
-      console.log('WebSocket connection closed');
-      setSocket(null);
-    };
-    
-    // Handle connection errors
-    const handleError = (error) => {
-      if (!isMountedRef.current) return;
-      console.error('WebSocket error:', error);
-      setError('Connection error');
+      setDocument(data.content);
+      setHasPassword(data.hasPassword);
       setIsLoading(false);
-    };
-    
-    // Register event handlers
-    newSocket.onopen = handleOpen;
-    newSocket.onmessage = handleMessage;
-    newSocket.onclose = handleClose;
-    newSocket.onerror = handleError;
-    
+      
+      // If note is not password protected, set as authenticated
+      if (!data.hasPassword) {
+        setIsAuthenticated(true);
+      }
+    });
+
+    // Handle real-time content updates from other users
+    newSocket.on('content-updated', (data) => {
+      if (!isMountedRef.current) return;
+      setDocument(data.content);
+    });
+
+    // Handle authentication responses
+    newSocket.on('auth-success', () => {
+      if (!isMountedRef.current) return;
+      setIsAuthenticated(true);
+      setError('');
+    });
+
+    newSocket.on('auth-failed', () => {
+      if (!isMountedRef.current) return;
+      setError('Invalid password');
+    });
+
+    newSocket.on('auth-required', () => {
+      if (!isMountedRef.current) return;
+      setHasPassword(true);
+      setIsAuthenticated(false);
+    });
+
+    // Handle errors
+    newSocket.on('error', (errorMessage) => {
+      if (!isMountedRef.current) return;
+      console.error('Socket error:', errorMessage);
+      setError(errorMessage);
+    });
+
+    // Handle disconnection
+    newSocket.on('disconnect', () => {
+      if (!isMountedRef.current) return;
+      console.log('Socket.IO disconnected');
+      setSocket(null);
+    });
+
+    // Handle connection errors
+    newSocket.on('connect_error', (error) => {
+      if (!isMountedRef.current) return;
+      console.error('Connection error:', error);
+      setError('Connection failed');
+      setIsLoading(false);
+    });
+
     // Cleanup function
     return () => {
-      isMountedRef.current = false; // Mark as unmounted
-      
-      // Remove event handlers to prevent memory leaks
-      newSocket.onopen = null;
-      newSocket.onmessage = null;
-      newSocket.onclose = null;
-      newSocket.onerror = null;
-      
-      // Close the WebSocket connection
-      if (newSocket.readyState === WebSocket.OPEN) {
-        newSocket.close();
-      }
+      isMountedRef.current = false;
+      newSocket.disconnect();
     };
-  }, [id]); // Only re-run when the ID changes
+  }, [id]);
 
   const authenticate = () => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({ type: 'auth', password }));
+    if (socket) {
+      socket.emit('auth', { noteId: id, password });
     }
   };
 
@@ -115,9 +116,8 @@ function NoteEditor() {
     
     // Set a new timeout to save after 1 second of inactivity
     const timeout = setTimeout(() => {
-      if (socket && socket.readyState === WebSocket.OPEN && 
-          (isAuthenticated || !hasPassword)) {
-        socket.send(JSON.stringify({ type: 'update', data: newDocument }));
+      if (socket && (isAuthenticated || !hasPassword)) {
+        socket.emit('update-content', { noteId: id, content: newDocument });
         setIsSaving(true);
         
         // Show saving indicator briefly

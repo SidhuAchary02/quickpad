@@ -1,57 +1,47 @@
-import { configDotenv } from 'dotenv';
-configDotenv();
-
 import express from 'express';
-import cors from 'cors';
-import { WebSocketServer } from 'ws';
-import http from 'http';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-// Fix for ES modules __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Import with correct paths and .js extensions
-import { setupDatabase } from './db.js';
+import { Server } from 'socket.io';
+import connectDB from './db.js';
 import { NoteController } from './controllers/noteController.js';
 import { createNoteRoutes } from './routes/noteRoutes.js';
 import { setupNoteSocket } from './websockets/noteSocket.js';
 
 const app = express();
-app.use(cors());
 app.use(express.json());
 
 // Setup database
-const db = await setupDatabase();
-const noteController = new NoteController(db);
+await connectDB();
+console.log('Database connection established');
+
+// Initialize controller
+const noteController = new NoteController();
 
 // Setup routes
 app.use(createNoteRoutes(noteController));
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'frontend/dist')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'frontend/dist/index.html'));
-  });
-}
-
-// Create HTTP server
-const server = http.createServer(app);
-
-// Setup WebSocket server
-const wss = new WebSocketServer({ server });
-setupNoteSocket(wss, noteController);
-
-// Start server
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`Server is listening on port ${PORT}`);
-  
-  // Clean up expired notes every hour
-  setInterval(async () => {
-    await noteController.cleanupExpiredNotes();
-    console.log('Expired notes cleaned up');
-  }, 60 * 60 * 1000);
+// Start Express server (Dave's way)
+const PORT = process.env.PORT || 5030;
+const expressServer = app.listen(PORT, () => {
+  console.log(`🚀 Server listening on port ${PORT}`);
 });
+
+// Setup Socket.IO on same server (Dave's way)
+const io = new Server(expressServer, {
+  cors: {
+    origin: process.env.NODE_ENV === 'production' 
+      ? process.env.CLIENT_URL 
+      : "http://localhost:5173"
+  }
+});
+
+// Setup Socket.IO events
+setupNoteSocket(io, noteController);
+
+// Clean up expired notes every day
+setInterval(async () => {
+  try {
+    await noteController.cleanupExpiredNotes();
+    console.log('🧹 Expired notes cleaned up');
+  } catch (error) {
+    console.error('❌ Error cleaning up expired notes:', error);
+  }
+}, 24 * 60 * 60 * 1000);
