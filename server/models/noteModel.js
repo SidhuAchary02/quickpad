@@ -1,28 +1,38 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const noteSchema = new mongoose.Schema({
-  id: { 
-    type: String, 
-    required: true, 
-    unique: true 
+  id: {
+    type: String,
+    required: true,
+    unique: true,
   },
-  content: { 
-    type: String, 
-    default: '' 
+  content: {
+    type: String,
+    default: "",
   },
-  password_hash: { 
-    type: String 
+  password_hash: {
+    type: String,
   },
-  created_at: { 
-    type: Date, 
-    default: Date.now 
+  created_at: {
+    type: Date,
+    default: Date.now,
   },
-  expires_at: { 
-    type: Date 
-  }
+  expires_at: {
+    type: Date,
+  },
+  // NEW: User association
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null, // Allow anonymous notes
+  },
+  is_public: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // TTL index for auto-expiration
 noteSchema.index({ expires_at: 1 }, { expireAfterSeconds: 0 });
 
-export const Note = mongoose.model('Note', noteSchema);
+export const Note = mongoose.model("Note", noteSchema);

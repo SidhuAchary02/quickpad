@@ -1,9 +1,14 @@
+import { configDotenv } from 'dotenv';
+configDotenv();
+
 import express from 'express';
 import { Server } from 'socket.io';
-import connectDB from './db.js';
+import authRoutes from './routes/authRoutes.js';
 import { NoteController } from './controllers/noteController.js';
 import { createNoteRoutes } from './routes/noteRoutes.js';
+import { createPasswordRoutes } from './routes/passwordRoutes.js';
 import { setupNoteSocket } from './websockets/noteSocket.js';
+import connectDB from './db.js';
 
 const app = express();
 app.use(express.json());
@@ -16,6 +21,8 @@ console.log('Database connection established');
 const noteController = new NoteController();
 
 // Setup routes
+app.use('/api/auth', authRoutes);
+app.use(createPasswordRoutes(noteController));
 app.use(createNoteRoutes(noteController));
 
 // Start Express server (Dave's way)
@@ -36,7 +43,7 @@ const io = new Server(expressServer, {
 // Setup Socket.IO events
 setupNoteSocket(io, noteController);
 
-// Clean up expired notes every day
+// Clean up expired notes every hour
 setInterval(async () => {
   try {
     await noteController.cleanupExpiredNotes();
@@ -44,4 +51,4 @@ setInterval(async () => {
   } catch (error) {
     console.error('❌ Error cleaning up expired notes:', error);
   }
-}, 24 * 60 * 60 * 1000);
+}, 60 * 60 * 1000);
