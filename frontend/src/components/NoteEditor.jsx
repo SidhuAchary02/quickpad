@@ -44,12 +44,7 @@ function NoteEditor() {
       return;
     }
 
-    if (!user || !user.id) {
-    console.log("⏳ No user or user ID, waiting...");
-    return;
-  }
-
-    console.log("🔧 Auth loaded, user:", user);
+    console.log("🔧 Auth loaded, user:", user?.id || 'anonymous');
     const newSocket = io("http://localhost:5030");
 
     newSocket.on("connect", () => {
@@ -62,7 +57,7 @@ function NoteEditor() {
       // Join the note room with auth info
       newSocket.emit("join-note", {
         noteId: id,
-        userId: user.id,
+        userId: user?.id || null,
       });
     });
 
@@ -227,16 +222,7 @@ function NoteEditor() {
     };
   }, [saveTimeout]);
 
-    // Show auth loading state
   if (authLoading) {
-    return (
-      <div className="text-center p-12 text-lg text-gray-700">
-        Loading authentication...
-      </div>
-    );
-  }
-
-  if (isLoading) {
     return (
       <div className="text-center p-12 text-lg text-gray-700">Loading...</div>
     );

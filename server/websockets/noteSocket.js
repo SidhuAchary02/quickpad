@@ -9,12 +9,14 @@ export function setupNoteSocket(io, noteController) {
       try {
         console.log("🔧 Received join-note event with data:", data);
         const { noteId, userId } = data;
-        console.log(`🔧 Extracted: noteId=${noteId}, userId=${userId}`);
+        console.log(
+          `🔧 Extracted: noteId=${noteId}, userId=${userId || "anonymous"}`
+        );
 
-            if (!noteId) {
-      socket.emit('error', 'Note ID required');
-      return;
-    }
+        if (!noteId) {
+          socket.emit("error", "Note ID required");
+          return;
+        }
 
         // Check if note exists, create if not
         let note = await noteController.getNoteById(noteId);
@@ -27,21 +29,25 @@ export function setupNoteSocket(io, noteController) {
             userId
           );
         } else {
-          console.log(`📖 Found existing note: ${noteId} with owner: ${note.owner}`);
+          console.log(
+            `📖 Found existing note: ${noteId} with owner: ${note.owner}`
+          );
 
-              // If note exists but has no owner AND user is logged in, claim ownership
-      if (!note.owner && userId) {
-        console.log(`👑 Claiming ownership of note ${noteId} for user ${userId}`);
-        await Note.updateOne({ id: noteId }, { owner: userId });
-        note.owner = userId; // Update local object
-      }
-    }
+          // If note exists but has no owner AND user is logged in, claim ownership
+          if (!note.owner && userId) {
+            console.log(
+              `👑 Claiming ownership of note ${noteId} for user ${userId}`
+            );
+            await Note.updateOne({ id: noteId }, { owner: userId });
+            note.owner = userId; // Update local object
+          }
+        }
 
         // Check if user is owner
         const isOwner =
           note.owner && userId && note.owner.toString() === userId;
         console.log(
-          `👤 Ownership: noteOwner=${note.owner}, userId=${userId}, isOwner=${isOwner}`
+          `👤 Ownership: noteOwner=${note.owner}, userId=${userId || 'anonymous'}, isOwner=${isOwner}`
         );
 
         // Join the note room
@@ -57,7 +63,7 @@ export function setupNoteSocket(io, noteController) {
         });
 
         console.log(
-          `User ${socket.id} joined note: ${noteId} (owner: ${isOwner})`
+          `User ${socket.id} joined note: ${noteId} (owner: ${isOwner}, anonymous: ${!userId})`
         );
       } catch (error) {
         console.error("Error joining note:", error);

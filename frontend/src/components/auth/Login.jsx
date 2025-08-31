@@ -23,8 +23,8 @@ export function Login({ onLoginSuccess, switchToSignup }) {
       if (!res.ok) {
         setError(data.error || 'Failed to log in');
       } else {
-        localStorage.setItem('token', data.token);
-        onLoginSuccess(data.user);
+        // Pass both user data AND token to parent
+        onLoginSuccess(data.user, data.token); // ← Updated to pass both
       }
     } catch (err) {
       setError('Network error. Please try again.');
@@ -33,6 +33,7 @@ export function Login({ onLoginSuccess, switchToSignup }) {
     }
   };
 
+  // ... rest of your component stays the same
   return (
     <div className="auth-container">
       <form className="auth-form" onSubmit={handleLogin}>

@@ -26,10 +26,6 @@ const noteSchema = new mongoose.Schema({
     ref: "User",
     default: null, // Allow anonymous notes
   },
-  is_public: {
-    type: Boolean,
-    default: false,
-  },
 });
 
 // TTL index for auto-expiration
