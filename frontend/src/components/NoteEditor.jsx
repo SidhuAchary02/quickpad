@@ -38,6 +38,19 @@ function NoteEditor() {
   };
 
   useEffect(() => {
+  // Only reconnect if we have a socket and user state has changed
+  if (socket && !authLoading) {
+    console.log("🔄 User state changed, rejoining note with userId:", user?.id);
+    
+    // Re-emit join-note with updated user info
+    socket.emit("join-note", {
+      noteId: id,
+      userId: user?.id || null,
+    });
+  }
+}, [user?.id]); // Watch specifically for user ID changes
+
+  useEffect(() => {
     // Check AUTH loading, not local loading
     if (authLoading) {
       console.log("⏳ Auth still loading, waiting...");
@@ -127,7 +140,7 @@ function NoteEditor() {
       isMountedRef.current = false;
       newSocket.disconnect();
     };
-  }, [id, user?.id, authLoading]); // Use authLoading in dependencies
+  }, [id, authLoading]); // Use authLoading in dependencies
 
   const authenticate = () => {
     if (socket) {
