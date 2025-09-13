@@ -25,11 +25,6 @@ export default function Page() {
   return (
     <div className="max-w-[800px] mx-auto text-center">
       <div className="min-h-screen bg-white text-[#404040]">
-        {/* Header */}
-        {/* <header className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
-        <h1 className="text-xl font-bold">quickpad</h1>
-      </header> */}
-
         {/* Main Content */}
         <main className="max-w-4xl mx-auto px-6 py-12 text-center">
           {/* Star Button */}
@@ -44,10 +39,18 @@ export default function Page() {
           </button>
         </div> */}
 
-          <div className="mb-2">
-            <button
-              onClick={createNote}
-              className="
+          <div className="relative">
+            <div className="absolute -top-4 left-64 transform rotate-12">
+              <img
+                src="/icons/curved-arrow.png"
+                alt="Arrow pointing to button"
+                className="w-12 h-12 opacity-70"
+              />
+            </div>
+            <div className="mb-2">
+              <button
+                onClick={createNote}
+                className="
             relative flex mx-auto gap-1 items-center text-[#404040] font-semibold 
             border border-gray-100 bg-transparent px-5 py-1 
             rounded-full transition-all duration-300 cursor-pointer
@@ -59,11 +62,12 @@ export default function Page() {
             after:bg-white after:z-[1]
                  shadow-lg shadow-blue-500/25
           "
-            >
-              <span className="relative z-[2] flex items-center gap-1">
-                quickly start <Zap className="w-4 h-4" />
-              </span>
-            </button>
+              >
+                <span className="relative z-[2] flex items-center gap-1">
+                  quickly start <Zap className="w-4 h-4" />
+                </span>
+              </button>
+            </div>
           </div>
 
           {/* Hero Section */}

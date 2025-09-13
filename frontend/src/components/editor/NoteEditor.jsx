@@ -270,7 +270,7 @@ function NoteEditor() {
   }
 
   return (
-    <div className="max-w-[800px] mx-auto p-5 text-[#404040]">
+    <div className="max-w-[800px] mx-auto p-5 text-[#404040] text-center">
       <div className="flex items-center justify-between mb-5 border-b border-gray-300 pb-4">
         <div className="flex item-center gap-2">
           <h1 className="text-xl font-semibold">Note: {id}</h1>
@@ -365,10 +365,16 @@ function NoteEditor() {
             className="w-full p-3 mb-5 border border-gray-300 rounded text-base"
             style={{ color: "#404040" }}
             onKeyPress={(e) => e.key === "Enter" && authenticate()}
+            required
           />
           <button
             onClick={authenticate}
-            className="bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 rounded text-base"
+            disabled={!password.trim()}
+            className={`px-5 py-2.5 rounded text-base transition-colors ${
+              !password.trim()
+                ? "bg-[#404040] text-gray-200 cursor-not-allowed"
+                : "bg-[#2b2b2b] text-white"
+            }`}
           >
             Unlock Note
           </button>
@@ -381,9 +387,8 @@ function NoteEditor() {
           rows="20"
           cols="80"
           placeholder="Start typing..."
-          className="w-full min-h-[500px] p-4 border border-gray-300 rounded text-base leading-relaxed resize-y"
+          className="w-full min-h-[500px] p-4 border border-[#cececf] rounded-lg shadow-md text-base leading-relaxed resize-y outline-none  focus:ring-[#cececf]"
           style={{ color: "#404040" }}
-          autoFocus
         />
       )}
 
@@ -408,7 +413,6 @@ function NoteEditor() {
   );
 }
 
-// Password Modal Component
 function PasswordModal({ onClose, onSubmit }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -427,16 +431,18 @@ function PasswordModal({ onClose, onSubmit }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
-        <h3 className="text-lg font-semibold mb-4">Set Password Protection</h3>
+    <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg border border-gray-300 shadow-lg max-w-md w-full mx-4">
+        <h3 className="text-lg font-semibold mb-4 text-[#404040]">
+          Set Password Protection
+        </h3>
         <form onSubmit={handleSubmit}>
           <input
             type="password"
             placeholder="Enter password (min 6 characters)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 mb-3 border border-gray-300 rounded"
+            className="w-full p-3 mb-3 border border-gray-300 rounded text-[#404040] placeholder-gray-500 focus:outline-none focus:border-gray-400"
             required
             minLength="6"
             autoFocus
@@ -446,21 +452,21 @@ function PasswordModal({ onClose, onSubmit }) {
             placeholder="Confirm password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full p-3 mb-4 border border-gray-300 rounded"
+            className="w-full p-3 mb-4 border border-gray-300 rounded text-[#404040] placeholder-gray-500 focus:outline-none focus:border-gray-400"
             required
             minLength="6"
           />
           <div className="flex gap-3">
             <button
               type="submit"
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded"
+              className="flex-1 bg-[#404040] hover:bg-gray-600 text-white py-2 px-4 rounded transition-colors"
             >
               Set Password
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded"
+              className="flex-1 bg-white hover:bg-gray-50 text-[#404040] border border-gray-300 py-2 px-4 rounded transition-colors"
             >
               Cancel
             </button>
