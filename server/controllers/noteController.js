@@ -2,106 +2,149 @@
 import bcrypt from "bcrypt";
 import { Note } from "../models/noteModel.js";
 
+// Complete working controller
 export class NoteController {
-  // Create a new note with a specific ID (ONLY keep this version)
   async createNoteWithId(id, content, password = null, userId = null) {
     const password_hash = password ? await bcrypt.hash(password, 10) : null;
     const expires_at = new Date();
     expires_at.setDate(expires_at.getDate() + 30);
 
-    console.log(`🔧 Creating note ${id} with owner: ${userId}`); // Add debug
+    console.log(`🔧 Creating note ${id} with owner: ${userId}`);
 
     try {
+      // CRITICAL: Check if note already exists BEFORE creating
+      const existingNote = await Note.findOne({ url: id });
+      console.log("🔧 Pre-creation check for URL:", id);
+      console.log("🔧 Existing note found:", existingNote ? "YES" : "NO");
+
+      if (existingNote) {
+        console.log("🔧 Existing note details:", {
+          id: existingNote._id,
+          url: existingNote.url,
+          owner: existingNote.owner,
+        });
+        throw new Error("URL already exists");
+      }
+
       const note = new Note({
-        id,
+        url: id,
         content,
         password_hash,
         expires_at,
-        owner: userId || null, // This line sets ownership
+        owner: userId || null,
       });
 
+      console.log("🔧 About to save note with URL:", note.url);
       await note.save();
-      console.log(`✅ Note created with owner: ${note.owner}`); // Add debug
+      console.log(`✅ Note created successfully with _id: ${note._id}`);
       return note;
     } catch (error) {
+      console.error("🔧 Error details:", {
+        name: error.name,
+        code: error.code,
+        message: error.message,
+        keyPattern: error.keyPattern,
+        keyValue: error.keyValue,
+      });
+
       if (error.code === 11000) {
-        return null;
+        console.log(`❌ Duplicate key error for ${id}`);
+        console.log(
+          "❌ Duplicate key details:",
+          error.keyPattern,
+          error.keyValue
+        );
+        throw new Error("URL already exists");
       }
       throw error;
     }
   }
 
-  // Create note with random ID
   async createNote(content = "", password = null, userId = null) {
-    const id = Math.random().toString(36).substring(2, 15);
+    const timestamp = Date.now().toString(36);
+    const randomPart = Math.random().toString(36).substring(2, 8);
+    const id = timestamp + randomPart;
+
     return await this.createNoteWithId(id, content, password, userId);
   }
 
-  // ... rest of your methods stay the same
   async getNoteById(id) {
-    return await Note.findOne({ id });
+    console.log("🔧 getNoteById searching for:", id);
+    const note = await Note.findOne({ url: id });
+    console.log("🔧 getNoteById result:", note ? "FOUND" : "NOT FOUND");
+    return note;
   }
 
   async noteExists(id) {
-    const note = await Note.findOne({ id }).select("id");
+    const note = await Note.findOne({ url: id }).select("url");
     return !!note;
   }
 
   async updateNoteContent(id, content) {
-    await Note.updateOne({ id }, { content });
+    console.log("🔧 Updating content for note:", id);
+    const result = await Note.updateOne({ url: id }, { content });
+    console.log(
+      "🔧 Update result:",
+      result.modifiedCount > 0 ? "SUCCESS" : "FAILED"
+    );
+    return result;
   }
 
   async verifyPassword(id, password) {
+    console.log("🔧 Verifying password for note:", id);
     const note = await this.getNoteById(id);
-    if (!note || !note.password_hash) return false;
-    return await bcrypt.compare(password, note.password_hash);
-  }
-
-  async cleanupExpiredNotes() {
-    const now = new Date();
-    await Note.deleteMany({ expires_at: { $lt: now } });
+    if (!note || !note.password_hash) {
+      console.log("🔧 Password verification: NO PASSWORD SET");
+      return false;
+    }
+    const isValid = await bcrypt.compare(password, note.password_hash);
+    console.log(
+      "🔧 Password verification result:",
+      isValid ? "VALID" : "INVALID"
+    );
+    return isValid;
   }
 
   async setNotePassword(noteId, password, userId) {
-    try {
-      const note = await Note.findOne({ id: noteId });
-      if (!note) {
-        throw new Error("Note not found");
-      }
+    console.log("🔧 setNotePassword Debug:");
+    console.log("- noteId:", noteId);
+    console.log("- userId:", userId, typeof userId);
 
-      if (!note.owner || note.owner.toString() !== userId) {
-        throw new Error("Only note owner can set password");
-      }
+    const note = await Note.findOne({ url: noteId });
+    if (!note) throw new Error("Note not found");
 
-      const password_hash = await bcrypt.hash(password, 10);
-      await Note.updateOne({ id: noteId }, { password_hash });
-      return { success: true };
-    } catch (error) {
-      throw error;
+    console.log("- note.owner:", note.owner, typeof note.owner);
+    console.log(
+      "- note.owner.toString():",
+      note.owner ? note.owner.toString() : "null"
+    );
+    console.log(
+      "- Comparison result:",
+      note.owner ? note.owner.toString() === userId : false
+    );
+
+    if (!note.owner || note.owner.toString() !== userId) {
+      throw new Error("Only note owner can set password");
     }
+
+    const password_hash = await bcrypt.hash(password, 10);
+    await Note.updateOne({ url: noteId }, { password_hash });
+    return { success: true };
   }
 
   async removeNotePassword(noteId, userId) {
-    try {
-      const note = await Note.findOne({ id: noteId });
-      if (!note) {
-        throw new Error("Note not found");
-      }
-
-      if (!note.owner || note.owner.toString() !== userId) {
-        throw new Error("Only note owner can remove password");
-      }
-
-      await Note.updateOne({ id: noteId }, { $unset: { password_hash: "" } });
-      return { success: true };
-    } catch (error) {
-      throw error;
+    const note = await Note.findOne({ url: noteId });
+    if (!note) throw new Error("Note not found");
+    if (!note.owner || note.owner.toString() !== userId) {
+      throw new Error("Only note owner can remove password");
     }
+    await Note.updateOne({ url: noteId }, { $unset: { password_hash: "" } });
+    return { success: true };
   }
 
   async checkNoteOwnership(noteId, userId) {
     if (!userId) return false;
-    const note = await Note.findOne({ id: noteId });
+    const note = await Note.findOne({ url: noteId });
     return note && note.owner && note.owner.toString() === userId;
   }
 }

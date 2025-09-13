@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Note } from "../models/noteModel.js";
 
 export function setupNoteSocket(io, noteController) {
@@ -38,7 +39,7 @@ export function setupNoteSocket(io, noteController) {
             console.log(
               `👑 Claiming ownership of note ${noteId} for user ${userId}`
             );
-            await Note.updateOne({ id: noteId }, { owner: userId });
+            await Note.updateOne({ url: noteId }, { owner: new mongoose.Types.ObjectId(userId) });
             note.owner = userId; // Update local object
           }
         }
@@ -47,7 +48,9 @@ export function setupNoteSocket(io, noteController) {
         const isOwner =
           note.owner && userId && note.owner.toString() === userId;
         console.log(
-          `👤 Ownership: noteOwner=${note.owner}, userId=${userId || 'anonymous'}, isOwner=${isOwner}`
+          `👤 Ownership: noteOwner=${note.owner}, userId=${
+            userId || "anonymous"
+          }, isOwner=${isOwner}`
         );
 
         // Join the note room
@@ -63,7 +66,9 @@ export function setupNoteSocket(io, noteController) {
         });
 
         console.log(
-          `User ${socket.id} joined note: ${noteId} (owner: ${isOwner}, anonymous: ${!userId})`
+          `User ${
+            socket.id
+          } joined note: ${noteId} (owner: ${isOwner}, anonymous: ${!userId})`
         );
       } catch (error) {
         console.error("Error joining note:", error);

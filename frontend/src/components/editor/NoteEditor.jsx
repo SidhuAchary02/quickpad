@@ -1,10 +1,14 @@
 // src/components/NoteEditor.jsx
-import React, { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect, useRef, use } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Copy, Clipboard } from "lucide-react";
 import { io } from "socket.io-client";
-import { useAuth } from "./context/AuthContext";
+import { useAuth } from "../context/AuthContext";
+import ChangeUrlModal from "./ChangeUrlModal";
 
 function NoteEditor() {
+  const navigate = useNavigate();
+
   const { id } = useParams();
   const [document, setDocument] = useState("");
   const [socket, setSocket] = useState(null);
@@ -16,10 +20,18 @@ function NoteEditor() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveTimeout, setSaveTimeout] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showChangeUrlModal, setShowChangeUrlModal] = useState(false);
+
   const [isOwner, setIsOwner] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Auth context - ADD loading from auth context
-  const { user, getToken, isAuthenticated: userLoggedIn, loading: authLoading } = useAuth();
+  const {
+    user,
+    getToken,
+    isAuthenticated: userLoggedIn,
+    loading: authLoading,
+  } = useAuth();
 
   const textareaRef = useRef(null);
   const isMountedRef = useRef(true);
@@ -38,17 +50,20 @@ function NoteEditor() {
   };
 
   useEffect(() => {
-  // Only reconnect if we have a socket and user state has changed
-  if (socket && !authLoading) {
-    console.log("🔄 User state changed, rejoining note with userId:", user?.id);
-    
-    // Re-emit join-note with updated user info
-    socket.emit("join-note", {
-      noteId: id,
-      userId: user?.id || null,
-    });
-  }
-}, [user?.id]); // Watch specifically for user ID changes
+    // Only reconnect if we have a socket and user state has changed
+    if (socket && !authLoading) {
+      console.log(
+        "🔄 User state changed, rejoining note with userId:",
+        user?.id
+      );
+
+      // Re-emit join-note with updated user info
+      socket.emit("join-note", {
+        noteId: id,
+        userId: user?.id || null,
+      });
+    }
+  }, [user?.id]); // Watch specifically for user ID changes
 
   useEffect(() => {
     // Check AUTH loading, not local loading
@@ -57,7 +72,7 @@ function NoteEditor() {
       return;
     }
 
-    console.log("🔧 Auth loaded, user:", user?.id || 'anonymous');
+    console.log("🔧 Auth loaded, user:", user?.id || "anonymous");
     const newSocket = io("http://localhost:5030");
 
     newSocket.on("connect", () => {
@@ -168,8 +183,17 @@ function NoteEditor() {
   };
 
   const copyUrl = () => {
-    navigator.clipboard.writeText(window.location.href);
-    alert("URL copied to clipboard!");
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+
+  // Add this function for handling URL change
+  const handleUrlChanged = (newUrl) => {
+    console.log("URL changed to:", newUrl);
+    // Navigate to the new URL
+    navigate(`/${newUrl}`, { replace: true });
   };
 
   // Add password protection
@@ -246,67 +270,92 @@ function NoteEditor() {
   }
 
   return (
-    <div className="max-w-[800px] mx-auto p-5">
-      <div className="flex items-center justify-between mb-5 border-b border-gray-200 pb-4">
-        <h1 className="text-2xl font-semibold">Note: {id}</h1>
-        <div className="flex items-center gap-4">
-          {isSaving && <span className="text-green-600 italic">Saving...</span>}
+    <div className="max-w-[800px] mx-auto p-5 text-[#404040]">
+      <div className="flex items-center justify-between mb-5 border-b border-gray-300 pb-4">
+        <div className="flex item-center gap-2">
+          <h1 className="text-xl font-semibold">Note: {id}</h1>
+          <button
+            className="border border-[#cececf] rounded-md p-1 cursor-pointer hover:bg-gray-50 transition-colors"
+            onClick={copyUrl}
+          >
+            {copied ? (
+              <Clipboard className="w-4 h-4" />
+            ) : (
+              <Copy className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+        <div className="flex items-center gap-2">
+          {isSaving && <span className="text-gray-600 italic">Saving...</span>}
 
           {/* Password Icon - Only show for owners */}
           {userLoggedIn && isOwner && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               {hasPassword ? (
                 <button
                   onClick={removePassword}
-                  className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm"
+                  className="bg-white border border-[#cececf] font-semibold text-[#404040] hover:bg-gray-50 px-3 py-2 rounded-lg text-sm cursor-pointer"
                   title="Remove password protection"
                 >
-                  🔒 Remove Password
+                  Remove Password
                 </button>
               ) : (
                 <button
                   onClick={() => setShowPasswordModal(true)}
-                  className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm"
+                  className="bg-white border border-[#cececf] font-semibold text-[#404040] hover:bg-gray-50 px-3 py-2 rounded-lg text-sm cursor-pointer"
                   title="Add password protection"
                 >
-                  🔓 Add Password
+                  Add Password
                 </button>
               )}
             </div>
           )}
 
-          <button
-            onClick={copyUrl}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-          >
-            Copy URL
-          </button>
+          {/* Change URL Button - Only show for owners */}
+          {userLoggedIn && isOwner && (
+            <button
+              onClick={() => setShowChangeUrlModal(true)}
+              className="bg-white border border-[#cececf] font-semibold text-[#404040] hover:bg-gray-50 px-3 py-2 rounded-lg text-sm cursor-pointer"
+              title="Change note URL"
+            >
+              Change URL
+            </button>
+          )}
         </div>
       </div>
 
       {/* User status indicator */}
       {userLoggedIn && (
-        <div className="mb-3 text-sm text-gray-600 flex items-center gap-2">
-          <span>
-            Logged in as: <span className="font-semibold">{user.username}</span>
-          </span>
+        <div
+          className="mb-3 text-sm flex items-center gap-2"
+          style={{ color: "#404040" }}
+        >
           {isOwner && (
-            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+            <span
+              className="bg-gray-100 px-2 py-1 rounded-full text-xs"
+              style={{ color: "#404040" }}
+            >
               Owner
             </span>
           )}
           {hasPassword && (
-            <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">
-              🔒 Protected
+            <span
+              className="bg-gray-100 px-2 py-1 rounded-full text-xs"
+              style={{ color: "#404040" }}
+            >
+              Protected
             </span>
           )}
         </div>
       )}
 
       {hasPassword && !noteAuthenticated ? (
-        <div className="max-w-md mx-auto p-8 bg-neutral-50 rounded-lg text-center">
-          <p className="mb-5 flex items-center justify-center gap-2">
-            🔒 This note is password protected
+        <div className="max-w-md mx-auto p-8 bg-white border border-gray-300 rounded-lg text-center">
+          <p
+            className="mb-5 flex items-center justify-center gap-2"
+            style={{ color: "#404040" }}
+          >
+            This note is password protected
           </p>
           <input
             type="password"
@@ -314,11 +363,12 @@ function NoteEditor() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter password"
             className="w-full p-3 mb-5 border border-gray-300 rounded text-base"
+            style={{ color: "#404040" }}
             onKeyPress={(e) => e.key === "Enter" && authenticate()}
           />
           <button
             onClick={authenticate}
-            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded text-base"
+            className="bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 rounded text-base"
           >
             Unlock Note
           </button>
@@ -332,6 +382,7 @@ function NoteEditor() {
           cols="80"
           placeholder="Start typing..."
           className="w-full min-h-[500px] p-4 border border-gray-300 rounded text-base leading-relaxed resize-y"
+          style={{ color: "#404040" }}
           autoFocus
         />
       )}
@@ -341,6 +392,16 @@ function NoteEditor() {
         <PasswordModal
           onClose={() => setShowPasswordModal(false)}
           onSubmit={addPassword}
+        />
+      )}
+
+      {/* Change URL Modal */}
+      {showChangeUrlModal && (
+        <ChangeUrlModal
+          isOpen={showChangeUrlModal}
+          onClose={() => setShowChangeUrlModal(false)}
+          currentUrl={id}
+          onUrlChanged={handleUrlChanged}
         />
       )}
     </div>

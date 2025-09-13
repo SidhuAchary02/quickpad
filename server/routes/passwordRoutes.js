@@ -9,7 +9,7 @@ export function createPasswordRoutes(noteController) {
     try {
       const { id } = req.params;
       const { password } = req.body;
-      const userId = req.user.userId;
+      const userId = req.user.id;
 
       if (!password || password.length < 6) {
         return res.status(400).json({ error: 'Password must be at least 6 characters' });
@@ -30,7 +30,7 @@ export function createPasswordRoutes(noteController) {
   router.delete('/api/notes/:id/password', authenticateToken, async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.userId;
+      const userId = req.user.id;
 
       await noteController.removeNotePassword(id, userId);
       

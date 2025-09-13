@@ -1,76 +1,100 @@
-import { useState } from 'react';
-import './Auth.css';
+"use client"
+
+import { useState } from "react"
 
 export function Login({ onLoginSuccess, switchToSignup }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+    e.preventDefault()
+    setLoading(true)
+    setError("")
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
-      });
-      const data = await res.json();
+      })
+      const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || 'Failed to log in');
+        setError(data.error || "Failed to log in")
       } else {
-        // Pass both user data AND token to parent
-        onLoginSuccess(data.user, data.token); // ← Updated to pass both
+        onLoginSuccess(data.user, data.token)
       }
     } catch (err) {
-      setError('Network error. Please try again.');
+      setError("Network error. Please try again.")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  // ... rest of your component stays the same
   return (
-    <div className="auth-container">
-      <form className="auth-form" onSubmit={handleLogin}>
-        <h2>Welcome Back</h2>
-        {error && <div className="error-message">{error}</div>}
-        
-        <div className="form-group">
-          <input
-            type="text"
-            placeholder="Username or Email"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        
-        <div className="form-group">
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        
-        <button type="submit" disabled={loading} className="auth-button">
-          {loading ? 'Logging in...' : 'Log In'}
-        </button>
-        
-        <p className="auth-switch">
-          Don't have an account?{' '}
-          <button type="button" onClick={switchToSignup} className="link-button">
-            Sign Up
+    <div
+      className="min-h-screen flex items-center justify-center text-[#404040]"
+    >
+      <div className="w-full max-w-md">
+        <form className="bg-white border border-[#cececf] rounded-lg p-8 space-y-6 shadow-md" onSubmit={handleLogin}>
+          <h2 className="text-center text-2xl font-semibold mb-8 text-[#404040]">
+            Welcome Back
+          </h2>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 p-4 rounded-lg mb-6 text-[#dc2626]">
+              {error}
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div>
+              <input
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none hover:border-gray-400 focus:border-gray-500 transition-colors"
+                style={{ color: "#404040" }}
+              />
+            </div>
+
+            <div>
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none hover:border-gray-400 focus:border-gray-500 transition-colors"
+                style={{ color: "#404040" }}
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full px-4 py-3 bg-[#404040] hover:bg-[#2b2b2b] text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold cursor-pointer"
+          >
+            {loading ? "Logging in..." : "Log In"}
           </button>
-        </p>
-      </form>
+
+          <p className="text-center" style={{ color: "#404040" }}>
+            {"Don't have an account? "}
+            <button
+              type="button"
+              onClick={switchToSignup}
+              className="text-[#404040] underline bg-transparent border-none cursor-pointer transition-colors"
+            >
+              Sign Up
+            </button>
+          </p>
+        </form>
+      </div>
     </div>
-  );
+  )
 }
