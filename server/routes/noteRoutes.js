@@ -23,6 +23,60 @@ export function createNoteRoutes(noteController) {
     }
   });
 
+  // Add this to your noteRoutes.js
+  router.post("/api/notes/custom", optionalAuth, async (req, res) => {
+    try {
+      const { content, password, customUrl } = req.body;
+      const userId = req.user?.id || null;
+
+      // Validate custom URL format
+      if (customUrl) {
+        const urlRegex = /^[a-zA-Z0-9_-]+$/;
+        if (!urlRegex.test(customUrl) || customUrl.length < 3) {
+          return res
+            .status(400)
+            .json({
+              error:
+                "Invalid URL format. Use only letters, numbers, hyphens, and underscores (min 3 characters)",
+            });
+        }
+
+        // Check if URL is available
+        const existingNote = await Note.findOne({ url: customUrl });
+        if (existingNote) {
+          return res.status(400).json({ error: "URL already taken" });
+        }
+
+        // Create note with custom URL
+        const note = await noteController.createNoteWithId(
+          customUrl,
+          content,
+          password,
+          userId
+        );
+        return res.json({
+          id: note.url,
+          url: `/${note.url}`,
+          expires_at: note.expires_at,
+        });
+      } else {
+        // Create note with random URL
+        const note = await noteController.createNote(content, password, userId);
+        return res.json({
+          id: note.url,
+          url: `/${note.url}`,
+          expires_at: note.expires_at,
+        });
+      }
+    } catch (error) {
+      console.error("Error creating custom note:", error);
+      if (error.message === "URL already exists") {
+        return res.status(400).json({ error: "URL already taken" });
+      }
+      res.status(500).json({ error: "Failed to create note" });
+    }
+  });
+
   // Get note metadata
   router.get("/api/notes/:id/meta", async (req, res) => {
     try {
