@@ -1,7 +1,7 @@
 // src/components/Home.jsx
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { Github, Zap, Check, X, Loader2 } from "lucide-react";
+import { Github, Sparkles, Check, X, Loader2 } from "lucide-react";
 import { useAuth } from "./context/AuthContext";
 import { API_BASE_URL } from "../config/api";
 
@@ -42,7 +42,9 @@ export default function Page() {
       });
 
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/notes/check-url/${url}`);
+        const response = await axios.get(
+          `${API_BASE_URL}/api/notes/check-url/${url}`
+        );
         if (response.data.available) {
           setAvailability({
             status: "available",
@@ -171,7 +173,7 @@ export default function Page() {
         {/* Star Button */}
 
         <div className="relative">
-          <div className="absolute -top-4 left-64 transform rotate-12">
+          <div className="absolute -top-4 left-58 transform rotate-12">
             <img
               src="/icons/curved-arrow.png"
               alt="Arrow pointing to button"
@@ -182,7 +184,7 @@ export default function Page() {
             <button
               onClick={() =>
                 window.open(
-                  "https://github.com/yourusername/quickpad",
+                  "https://github.com/SidhuAchary02/quickpad",
                   "_blank"
                 )
               }
@@ -199,8 +201,8 @@ export default function Page() {
             shadow-lg shadow-blue-500/25
           "
             >
-              <span className="relative z-[2] flex items-center gap-1 hover:text-pink-500">
-                quickly start <Zap className="w-4 h-4" />
+              <span className="relative z-[2] flex items-center gap-1 font-bold hover:text-pink-500 transition-colors duration-300 ease-in-out">
+                star me on github <Sparkles className="w-4 h-4" />
               </span>
             </button>
           </div>
@@ -346,6 +348,34 @@ export default function Page() {
           </div>
         </div>
       </main>
+
+      {/* Footer Section */}
+      <footer className="border-t border-gray-200 py-6 mt-16">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <p className="mb-1" style={{ color: "#404040" }}>
+            Built by{" "}
+            <a
+              href="https://github.com/SidhuAchary02"
+              target="_blank"
+              className="font-semibold hover:underline"
+              style={{ color: "#404040" }}
+            >
+              @SidhuAchary02
+            </a>
+          </p>
+          <p style={{ color: "#404040" }}>
+            quickpad is open-source on{" "}
+            <a
+              href="https://github.com/SidhuAchary02/quickpad"
+              target="_blank"
+              className="font-medium hover:underline"
+              style={{ color: "#404040" }}
+            >
+              Github
+            </a>
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

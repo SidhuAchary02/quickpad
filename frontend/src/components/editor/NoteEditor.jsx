@@ -396,6 +396,34 @@ function NoteEditor() {
         />
       )}
 
+            {/* Footer Section */}
+      <footer className="border-t border-gray-200 py-6 mt-16">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <p className="mb-1" style={{ color: "#404040" }}>
+            Built by{" "}
+            <a
+              href="https://github.com/SidhuAchary02"
+              target="_blank"
+              className="font-semibold hover:underline"
+              style={{ color: "#404040" }}
+            >
+              @SidhuAchary02
+            </a>
+          </p>
+          <p style={{ color: "#404040" }}>
+            quickpad is open-source on{" "}
+            <a
+              href="https://github.com/SidhuAchary02/quickpad"
+              target="_blank"
+              className="font-medium hover:underline"
+              style={{ color: "#404040" }}
+            >
+              Github
+            </a>
+          </p>
+        </div>
+      </footer>
+
       {/* Password Modal */}
       {showPasswordModal && (
         <PasswordModal
@@ -476,6 +504,7 @@ function PasswordModal({ onClose, onSubmit }) {
             </button>
           </div>
         </form>
+        
       </div>
     </div>
   );
