@@ -346,6 +346,7 @@ function NoteEditor() {
               Protected
             </span>
           )}
+          {document.length} characters
         </div>
       )}
 
@@ -387,7 +388,7 @@ function NoteEditor() {
           rows="20"
           cols="80"
           placeholder="Start typing..."
-          className="w-full min-h-[500px] p-4 border border-[#cececf] rounded-lg shadow-md text-base leading-relaxed resize-y outline-none  focus:ring-[#cececf]"
+          className="w-full min-h-[500px] p-4 border border-[#cececf] rounded-lg shadow-md text-base leading-relaxed resize-y outline-none  focus:ring-[#cececf] font-mono"
           style={{ color: "#404040" }}
         />
       )}
@@ -459,14 +460,14 @@ function PasswordModal({ onClose, onSubmit }) {
           <div className="flex gap-3">
             <button
               type="submit"
-              className="flex-1 bg-[#404040] hover:bg-gray-600 text-white py-2 px-4 rounded transition-colors"
+              className="flex-1 bg-[#404040] hover:bg-[#2b2b2b] text-white py-2 px-4 rounded transition-colors font-semibold cursor-pointer"
             >
               Set Password
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-white hover:bg-gray-50 text-[#404040] border border-gray-300 py-2 px-4 rounded transition-colors"
+              className="flex-1 bg-white hover:bg-gray-50 text-[#404040] border border-gray-300 py-2 px-4 rounded transition-colors font-semibold cursor-pointer"
             >
               Cancel
             </button>

@@ -24,12 +24,8 @@ function Navbar() {
   }
 
   return (
-    <nav className="flex items-center justify-between px-6 py-3 max-w-4xl mx-auto sticky top-0 bg-white/80 backdrop-blur-lg z-[1001]">
-      <a
-      href="/"
-        // onClick={() => navigate("/")}
-        className="text-xl font-bold text-[#404040] cursor-pointer"
-      >
+    <nav className="flex items-center justify-between px-6 py-3 max-w-4xl mx-auto sticky top-0 bg-white/80 backdrop-blur-sm z-[1001]">
+      <a href="/" className="text-xl font-bold text-[#404040] cursor-pointer">
         quickpad
       </a>
 
