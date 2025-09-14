@@ -95,7 +95,7 @@ export default function Page() {
       const token = getToken();
 
       const response = await axios.post(
-        "/api/notes/custom",
+        `${API_BASE_URL}/api/notes/custom`,
         {
           content: "",
           password: null,

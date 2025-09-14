@@ -5,7 +5,7 @@ import { Copy, Clipboard } from "lucide-react";
 import { io } from "socket.io-client";
 import { useAuth } from "../context/AuthContext";
 import ChangeUrlModal from "./ChangeUrlModal";
-import { SOCKET_URL } from "../../config/api";
+import { API_BASE_URL, SOCKET_URL } from "../../config/api";
 
 function NoteEditor() {
   const navigate = useNavigate();
@@ -203,7 +203,7 @@ function NoteEditor() {
   const addPassword = async (newPassword) => {
     try {
       const response = await makeAuthenticatedRequest(
-        `/api/notes/${id}/password`,
+        `${API_BASE_URL}/api/notes/${id}/password`,
         {
           method: "POST",
           body: JSON.stringify({ password: newPassword }),
@@ -233,7 +233,7 @@ function NoteEditor() {
 
     try {
       const response = await makeAuthenticatedRequest(
-        `/api/notes/${id}/password`,
+        `${API_BASE_URL}/api/notes/${id}/password`,
         {
           method: "DELETE",
         }
