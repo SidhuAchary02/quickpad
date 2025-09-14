@@ -2,6 +2,7 @@ import { configDotenv } from 'dotenv';
 configDotenv();
 
 import express from 'express';
+import cors from 'cors';
 import { Server } from 'socket.io';
 import authRoutes from './routes/authRoutes.js';
 import { NoteController } from './controllers/noteController.js';
@@ -11,6 +12,13 @@ import { setupNoteSocket } from './websockets/noteSocket.js';
 import connectDB from './db.js';
 
 const app = express();
+
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.CLIENT_URL 
+    : "http://localhost:5173",
+  credentials: true
+}));
 app.use(express.json());
 
 // Setup database
