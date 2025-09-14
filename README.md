@@ -39,7 +39,7 @@ git clone https://github.com/SidhuAchary02/quickpad.git
 cd quickpad
 ```
 
-2. Install backend dependencies
+2. Install server dependencies
 ```
 cd server
 npm install
@@ -55,7 +55,8 @@ npm install
 
 4. Configure environment variables
 ```
-#Backend (.env)
+#server (.env)
+NODE_ENV=development
 MONGODB_URL=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
 CLIENT_URL=http://localhost:5173
