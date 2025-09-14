@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { API_BASE_URL } from "../../config/api"
 
 export function Login({ onLoginSuccess, switchToSignup }) {
   const [username, setUsername] = useState("")
@@ -14,7 +15,7 @@ export function Login({ onLoginSuccess, switchToSignup }) {
     setError("")
 
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

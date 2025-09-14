@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
+import { API_BASE_URL } from "../../config/api";
 
 const ChangeUrlModal = ({ isOpen, onClose, currentUrl, onUrlChanged }) => {
   const [newUrl, setNewUrl] = useState("");
@@ -34,7 +35,7 @@ const ChangeUrlModal = ({ isOpen, onClose, currentUrl, onUrlChanged }) => {
     setError("");
 
     try {
-      const response = await fetch(`/api/notes/check-url/${url}`);
+      const response = await fetch(`${API_BASE_URL}/api/notes/check-url/${url}`);
       const data = await response.json();
 
       if (data.available) {
@@ -76,7 +77,7 @@ const ChangeUrlModal = ({ isOpen, onClose, currentUrl, onUrlChanged }) => {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`/api/notes/${currentUrl}/change-url`, {
+      const response = await fetch(`${API_BASE_URL}/api/notes/${currentUrl}/change-url`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

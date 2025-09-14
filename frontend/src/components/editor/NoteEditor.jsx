@@ -5,6 +5,7 @@ import { Copy, Clipboard } from "lucide-react";
 import { io } from "socket.io-client";
 import { useAuth } from "../context/AuthContext";
 import ChangeUrlModal from "./ChangeUrlModal";
+import { SOCKET_URL } from "../../config/api";
 
 function NoteEditor() {
   const navigate = useNavigate();
@@ -73,7 +74,9 @@ function NoteEditor() {
     }
 
     console.log("🔧 Auth loaded, user:", user?.id || "anonymous");
-    const newSocket = io("http://localhost:5030");
+    const newSocket = io(SOCKET_URL, {
+      withCredentials: true,
+    });
 
     newSocket.on("connect", () => {
       if (!isMountedRef.current) return;

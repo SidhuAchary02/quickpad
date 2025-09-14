@@ -10,7 +10,7 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      '/api': 'http://localhost:5030',
+      '/api': 'https://quickpad.onrender.com',
     }
   }
 })

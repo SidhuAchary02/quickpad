@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import { API_BASE_URL } from '../../config/api';
 
 const AuthContext = createContext(null);
 
@@ -15,7 +16,7 @@ export function AuthProvider({ children }) {
         setUser(JSON.parse(storedUser));
 
         // Optional: Verify token with server in background
-        fetch('/api/auth/me', {
+        fetch(`${API_BASE_URL}/api/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         })
           .then((res) => res.json())

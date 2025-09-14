@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { API_BASE_URL } from "../../config/api"
 
 export function Signup({ onLoginSuccess, switchToLogin }) {
   const [username, setUsername] = useState("")
@@ -13,7 +14,7 @@ export function Signup({ onLoginSuccess, switchToLogin }) {
     setError("")
 
     try {
-      const res = await fetch("/api/auth/signup", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
