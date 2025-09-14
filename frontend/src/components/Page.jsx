@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Github, Zap, Check, X, Loader2 } from "lucide-react";
 import { useAuth } from "./context/AuthContext";
+import { API_BASE_URL } from "../config/api";
 
 export default function Page() {
   const { getToken } = useAuth();
@@ -41,7 +42,7 @@ export default function Page() {
       });
 
       try {
-        const response = await axios.get(`/api/notes/check-url/${url}`);
+        const response = await axios.get(`${API_BASE_URL}/api/notes/check-url/${url}`);
         if (response.data.available) {
           setAvailability({
             status: "available",
