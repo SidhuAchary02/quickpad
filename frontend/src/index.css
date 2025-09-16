@@ -13,3 +13,36 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Enable class-based dark mode */
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  
+  :root.dark {
+    color-scheme: dark;
+  }
+}
+
+@theme {
+  /* Your custom theme variables go here if needed */
+  --color-primary: #3b82f6;
+}
+
+/* Enable dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
+/* Add this line for TailwindCSS v4 dark mode support */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Add smooth transitions for theme switching */
+* {
+  transition-property: color, background-color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
