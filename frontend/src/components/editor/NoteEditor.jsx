@@ -8,6 +8,7 @@ import ChangeUrlModal from "./ChangeUrlModal";
 import { API_BASE_URL, SOCKET_URL } from "../../config/api";
 import { Download } from "lucide-react";
 import ExportMenu from "./ExportMenu";
+import ActiveUsers from "./ActiveUsers";
 
 function NoteEditor() {
   const navigate = useNavigate();
@@ -332,6 +333,7 @@ function NoteEditor() {
           >
             <Download className="w-4 h-4" />
           </button>
+          <ActiveUsers socket={socket} noteId={id} />
         </div>
         <div className="flex items-center gap-2">
           {isSaving && (
@@ -378,22 +380,24 @@ function NoteEditor() {
 
       {/* User status indicator */}
       {userLoggedIn && (
-        <div className="mb-3 text-[#404040] dark:text-zinc-400 text-sm flex items-center gap-2">
-          {isOwner && (
-            <span className="bg-gray-100 dark:bg-zinc-300 border border-gray-200 text-gray-800 px-2 py-1 rounded-full text-xs font-semibold">
-              Owner
-            </span>
-          )}
-          {hasPassword && (
-            <span className="bg-gray-100 dark:bg-zinc-300 border border-gray-200 text-gray-800 px-2 py-1 rounded-full text-xs font-semibold">
-              Protected
-            </span>
-          )}
-          <div>
-            <span className="font-semibold dark:text-zinc-300">
-              {document.length}
-            </span>{" "}
-            characters
+        <div className="justify-between items-center">
+          <div className="mb-3 text-[#404040] dark:text-zinc-400 text-sm flex items-center gap-2">
+            {isOwner && (
+              <span className="bg-gray-100 dark:bg-zinc-300 border border-gray-200 text-gray-800 px-2 py-1 rounded-full text-xs font-semibold">
+                Owner
+              </span>
+            )}
+            {hasPassword && (
+              <span className="bg-gray-100 dark:bg-zinc-300 border border-gray-200 text-gray-800 px-2 py-1 rounded-full text-xs font-semibold">
+                Protected
+              </span>
+            )}
+            <div>
+              <span className="font-semibold dark:text-zinc-300">
+                {document.length}
+              </span>{" "}
+              characters
+            </div>
           </div>
         </div>
       )}
