@@ -82,7 +82,13 @@ export class NoteController {
 
   async updateNoteContent(id, content) {
     console.log("🔧 Updating content for note:", id);
-    const result = await Note.updateOne({ url: id }, { content });
+    const result = await Note.updateOne(
+      {
+        url: id,
+      },
+      { content },
+      { new: true }
+    );
     console.log(
       "🔧 Update result:",
       result.modifiedCount > 0 ? "SUCCESS" : "FAILED"

@@ -6,6 +6,8 @@ import { io } from "socket.io-client";
 import { useAuth } from "../context/AuthContext";
 import ChangeUrlModal from "./ChangeUrlModal";
 import { API_BASE_URL, SOCKET_URL } from "../../config/api";
+import { Download } from "lucide-react";
+import ExportMenu from "./ExportMenu";
 
 function NoteEditor() {
   const navigate = useNavigate();
@@ -23,6 +25,10 @@ function NoteEditor() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showChangeUrlModal, setShowChangeUrlModal] = useState(false);
 
+  const [content, setContent] = useState("");
+  const [updatedAt, setUpdatedAt] = useState(null);
+
+  const [showExportMenu, setShowExportMenu] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -160,6 +166,36 @@ function NoteEditor() {
     };
   }, [id, authLoading]); // Use authLoading in dependencies
 
+  // Simple inline function - no separate file needed
+  const formatSimpleDate = (dateString) => {
+    if (!dateString) return "Never updated";
+
+    const date = new Date(dateString);
+    const time = date.toLocaleTimeString("en-GB"); // 12:09:33 format
+    const dateFormatted = date.toLocaleDateString("en-GB"); // 21/08/2025 format
+
+    return `last updated on ${time} at ${dateFormatted}`;
+  };
+
+  useEffect(() => {
+    const loadNote = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/notes/${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setContent(data.content);
+          setUpdatedAt(data.updatedAt); // ← This will now work
+        }
+      } catch (error) {
+        console.error("Failed to load note:", error);
+      }
+    };
+
+    if (id) {
+      loadNote();
+    }
+  }, [id]);
+
   const authenticate = () => {
     if (socket) {
       socket.emit("auth", { noteId: id, password });
@@ -273,13 +309,14 @@ function NoteEditor() {
   }
 
   return (
-    <div className="max-w-[800px] mx-auto p-5 text-[#404040] text-center">
-      <div className="flex items-center justify-between mb-5 border-b border-gray-300 pb-4">
+    <div className="max-w-[800px] mx-auto p-5 dark:text-white text-[#404040] text-center">
+      <div className="flex items-center justify-between  border-gray-300 dark:border-zinc-700 pb-4">
         <div className="flex item-center gap-2">
-          <h1 className="text-xl font-semibold">Note: {id}</h1>
+          <h1 className="text-xl font-semibold">id: {id}</h1>
           <button
-            className="border border-[#cececf] rounded-md p-1 cursor-pointer hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-1 rounded-md p-1 cursor-pointer dark:hover:bg-zinc-800 transition-colors"
             onClick={copyUrl}
+            title="copy note url"
           >
             {copied ? (
               <Clipboard className="w-4 h-4" />
@@ -287,9 +324,21 @@ function NoteEditor() {
               <Copy className="w-4 h-4" />
             )}
           </button>
+          {/* Export Button */}
+          <button
+            onClick={() => setShowExportMenu(true)}
+            className="rounded-md p-1 cursor-pointer dark:hover:bg-zinc-800 transition-colors"
+            title="Export note"
+          >
+            <Download className="w-4 h-4" />
+          </button>
         </div>
         <div className="flex items-center gap-2">
-          {isSaving && <span className="text-gray-600 italic">Saving...</span>}
+          {isSaving && (
+            <span className="text-gray-600 dark:text-zinc-400 italic">
+              Saving...
+            </span>
+          )}
 
           {/* Password Icon - Only show for owners */}
           {userLoggedIn && isOwner && (
@@ -353,6 +402,13 @@ function NoteEditor() {
         </div>
       )}
 
+      {/* Simple last updated display */}
+      {updatedAt && (
+        <p className="text-left text-sm text-gray-500 dark:text-zinc-400 mb-1">
+           {formatSimpleDate(updatedAt)}
+        </p>
+      )}
+
       {hasPassword && !noteAuthenticated ? (
         <div className="max-w-md mx-auto p-8 bg-white border border-gray-300 rounded-lg text-center">
           <p
@@ -391,13 +447,12 @@ function NoteEditor() {
           rows="20"
           cols="80"
           placeholder="Start typing..."
-          className="w-full min-h-[500px] p-4 border border-[#cececf] rounded-lg shadow-md text-base leading-relaxed resize-y outline-none  focus:ring-[#cececf] font-mono"
-          style={{ color: "#404040" }}
+          className="w-full min-h-[500px] p-4 border border-[#cececf] dark:border-zinc-700 rounded-lg shadow-md leading-relaxed resize-y outline-none dark:text-white text-[#404040] focus:ring-[#cececf] font-mono"
         />
       )}
 
-            {/* Footer Section */}
-      <footer className="border-t border-gray-200 py-6 mt-16">
+      {/* Footer Section */}
+      <footer className="border-t border-gray-200 dark:border-zinc-700 py-6 mt-16">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="mb-1" style={{ color: "#404040" }}>
             Built by{" "}
@@ -423,6 +478,14 @@ function NoteEditor() {
           </p>
         </div>
       </footer>
+
+      {/* Export Menu Modal */}
+      <ExportMenu
+        content={document}
+        noteUrl={id}
+        isOpen={showExportMenu}
+        onClose={() => setShowExportMenu(false)}
+      />
 
       {/* Password Modal */}
       {showPasswordModal && (
@@ -504,7 +567,6 @@ function PasswordModal({ onClose, onSubmit }) {
             </button>
           </div>
         </form>
-        
       </div>
     </div>
   );

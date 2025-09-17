@@ -23,6 +23,26 @@ export function createNoteRoutes(noteController) {
     }
   });
 
+  router.get("/api/notes/:id", async (req, res) => {
+    try {
+      const {id} = req.params;
+      const note = await noteController.getNoteById(id);
+
+      if (!note) {
+        return res.status(404).json({ error: "Note not found" });
+      }
+
+      res.json({
+        content: note.content,
+        updatedAt: note.updatedAt,
+        hasPassword: !!note.password_hash,
+      })
+    } catch (error) {
+      console.log('error fetching note by id:', error);
+      res.status(500).json({ error: "Failed to fetch note" });
+    }
+  });
+
   // Add this to your noteRoutes.js
   router.post("/api/notes/custom", optionalAuth, async (req, res) => {
     try {
