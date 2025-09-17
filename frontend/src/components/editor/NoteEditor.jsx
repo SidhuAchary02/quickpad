@@ -174,7 +174,7 @@ function NoteEditor() {
     const time = date.toLocaleTimeString("en-GB"); // 12:09:33 format
     const dateFormatted = date.toLocaleDateString("en-GB"); // 21/08/2025 format
 
-    return `last updated on ${time} at ${dateFormatted}`;
+    return `last updated on ${time} at ${dateFormatted} (IST)`;
   };
 
   useEffect(() => {
@@ -194,7 +194,7 @@ function NoteEditor() {
     if (id) {
       loadNote();
     }
-  }, [id]);
+  }, [document, id]);
 
   const authenticate = () => {
     if (socket) {
