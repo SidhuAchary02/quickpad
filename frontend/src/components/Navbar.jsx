@@ -27,25 +27,12 @@ function Navbar() {
   }
 
   return (
-    <nav className="flex items-center justify-between px-6 py-3 max-w-4xl mx-auto sticky top-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm z-[1001] border-b border-gray-200/20 dark:border-zinc-700/20">
+    <nav className="flex items-center justify-between px-6 py-3 max-w-4xl mx-auto sticky top-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm z-[1001] border-b border-gray-200 dark:border-zinc-800">
       <a href="/" className="text-xl font-bold text-[#404040] dark:text-white cursor-pointer">
         quickpad
       </a>
 
       <div className="flex items-center gap-3">
-        {/* Theme Toggle Button */}
-        <button
-          onClick={toggleTheme}
-          className="p-2 text-[#404040] dark:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-          aria-label="Toggle theme"
-        >
-          {isDark ? (
-            <Sun className="w-5 h-5" />
-          ) : (
-            <Moon className="w-5 h-5" />
-          )}
-        </button>
-
         {isAuthenticated ? (
           <div className="flex items-center gap-4">
             <span className="text-[#404040] dark:text-white font-semibold underline">
@@ -66,6 +53,19 @@ function Navbar() {
             Login
           </button>
         )}
+
+        {/* Theme Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          className="p-2 text-[#404040] dark:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
+          aria-label="Toggle theme"
+        >
+          {isDark ? (
+            <Sun className="w-5 h-5" />
+          ) : (
+            <Moon className="w-5 h-5" />
+          )}
+        </button>
       </div>
 
       <AuthModal

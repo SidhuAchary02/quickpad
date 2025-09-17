@@ -34,11 +34,11 @@ export function Login({ onLoginSuccess, switchToSignup }) {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center text-[#404040]"
+      className="min-h-screen flex items-center justify-center text-[#404040] dark:text-white"
     >
       <div className="w-full max-w-md">
-        <form className="bg-white border border-[#cececf] rounded-lg p-8 space-y-6 shadow-md" onSubmit={handleLogin}>
-          <h2 className="text-center text-2xl font-semibold mb-8 text-[#404040]">
+        <form className="bg-white dark:bg-zinc-900 border border-[#cececf] dark:border-zinc-700 rounded-lg p-8 space-y-6 shadow-md" onSubmit={handleLogin}>
+          <h2 className="text-center text-2xl font-semibold mb-8 text-[#404040] dark:text-white">
             Welcome Back
           </h2>
 
@@ -56,8 +56,7 @@ export function Login({ onLoginSuccess, switchToSignup }) {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none hover:border-gray-400 focus:border-gray-500 transition-colors"
-                style={{ color: "#404040" }}
+                className="w-full px-3 py-2 text-[#404040] dark:text-white border border-gray-300 dark:border-zinc-500 rounded-lg outline-none hover:border-gray-400 focus:border-gray-500 transition-colors"
               />
             </div>
 
@@ -68,8 +67,7 @@ export function Login({ onLoginSuccess, switchToSignup }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none hover:border-gray-400 focus:border-gray-500 transition-colors"
-                style={{ color: "#404040" }}
+                className="w-full px-3 py-2 text-[#404040] dark:text-white border border-gray-300 dark:border-zinc-500 rounded-lg outline-none hover:border-gray-400 focus:border-gray-500 transition-colors"
               />
             </div>
           </div>
@@ -82,12 +80,12 @@ export function Login({ onLoginSuccess, switchToSignup }) {
             {loading ? "Logging in..." : "Log In"}
           </button>
 
-          <p className="text-center" style={{ color: "#404040" }}>
+          <p className="text-center text-sm text-gray-600 dark:text-zinc-400">
             {"Don't have an account? "}
             <button
               type="button"
               onClick={switchToSignup}
-              className="text-[#404040] underline bg-transparent border-none cursor-pointer transition-colors"
+              className="text-[#404040] dark:text-white underline bg-transparent border-none cursor-pointer transition-colors font-semibold"
             >
               Sign Up
             </button>

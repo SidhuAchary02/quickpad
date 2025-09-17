@@ -35,8 +35,8 @@ export function Signup({ onLoginSuccess, switchToLogin }) {
 
   return (
     <div className="flex justify-center items-center min-h-screen">
-      <form className="bg-white p-8 rounded-lg border border-gray-300 w-full max-w-[400px]" onSubmit={handleSignup}>
-        <h2 className="text-center mb-6 text-[#404040] text-2xl font-semibold">Create Account</h2>
+      <form className="bg-white dark:bg-zinc-900 p-8 rounded-lg border border-gray-300 dark:border-zinc-700 w-full max-w-[400px]" onSubmit={handleSignup}>
+        <h2 className="text-center mb-6 text-[#404040] text-2xl font-semibold dark:text-zinc-300">Create Account</h2>
         {error && <div className="bg-red-50 text-red-600 p-3 rounded border border-red-200 mb-4">{error}</div>}
 
         <div className="mb-4">
@@ -48,7 +48,7 @@ export function Signup({ onLoginSuccess, switchToLogin }) {
             required
             minLength="3"
             maxLength="20"
-            className="w-full py-2 px-3 border border-gray-300 rounded-lg text-base text-[#404040] box-border focus:outline-none focus:border-gray-400"
+            className="w-full py-2 px-3 border border-gray-300 dark:border-zinc-600 rounded-lg text-base text-[#404040] dark:text-zinc-300 box-border focus:outline-none focus:border-gray-400 dark:focus:border-zinc-500"
           />
         </div>
 
@@ -59,7 +59,7 @@ export function Signup({ onLoginSuccess, switchToLogin }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full py-2 px-3 border border-gray-300 rounded-lg text-base text-[#404040] box-border focus:outline-none focus:border-gray-400"
+            className="w-full py-2 px-3 border border-gray-300 dark:border-zinc-600 rounded-lg text-base text-[#404040] dark:text-zinc-300 box-border focus:outline-none focus:border-gray-400 dark:focus:border-zinc-500"
           />
         </div>
 
@@ -71,7 +71,7 @@ export function Signup({ onLoginSuccess, switchToLogin }) {
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength="6"
-            className="w-full py-2 px-3 border border-[#cececf] rounded-lg text-base text-[#404040] box-border focus:outline-none focus:border-gray-400"
+            className="w-full py-2 px-3 border border-gray-300 dark:border-zinc-600 rounded-lg text-base text-[#404040] dark:text-zinc-300 box-border focus:outline-none focus:border-gray-400 dark:focus:border-zinc-500"
           />
         </div>
 
@@ -83,12 +83,12 @@ export function Signup({ onLoginSuccess, switchToLogin }) {
           {loading ? "Creating Account..." : "Sign Up"}
         </button>
 
-        <p className="text-center text-[#404040]">
+        <p className="text-center text-[#404040] dark:text-zinc-400">
           Already have an account?{" "}
           <button
             type="button"
             onClick={switchToLogin}
-            className="bg-transparent border-none text-[#404040] cursor-pointer underline hover:text-gray-600"
+            className="bg-transparent border-none text-[#404040] dark:text-zinc-300 cursor-pointer underline hover:text-gray-600 hover:dark:text-zinc-200 font-semibold"
           >
             Log In
           </button>
