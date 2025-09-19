@@ -6,6 +6,7 @@ import { AuthProvider } from "./components/context/AuthContext";
 import { ThemeProvider } from "./components/context/ThemeContext";
 import Navbar from './components/Navbar'
 import Page from "./components/Page";
+import AccountPanel from "./components/Settings/AccountPanel";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Page />} />
               <Route path="/:id" element={<NoteEditor />} />
+              <Route path="/user/settings" element={<AccountPanel />} />
             </Routes>
           </div>
         </Router>

@@ -25,7 +25,7 @@ export function createNoteRoutes(noteController) {
 
   router.get("/api/notes/:id", async (req, res) => {
     try {
-      const {id} = req.params;
+      const { id } = req.params;
       const note = await noteController.getNoteById(id);
 
       if (!note) {
@@ -36,9 +36,9 @@ export function createNoteRoutes(noteController) {
         content: note.content,
         updatedAt: note.updatedAt,
         hasPassword: !!note.password_hash,
-      })
+      });
     } catch (error) {
-      console.log('error fetching note by id:', error);
+      console.log("error fetching note by id:", error);
       res.status(500).json({ error: "Failed to fetch note" });
     }
   });
@@ -53,12 +53,10 @@ export function createNoteRoutes(noteController) {
       if (customUrl) {
         const urlRegex = /^[a-zA-Z0-9_-]+$/;
         if (!urlRegex.test(customUrl) || customUrl.length < 3) {
-          return res
-            .status(400)
-            .json({
-              error:
-                "Invalid URL format. Use only letters, numbers, hyphens, and underscores (min 3 characters)",
-            });
+          return res.status(400).json({
+            error:
+              "Invalid URL format. Use only letters, numbers, hyphens, and underscores (min 3 characters)",
+          });
         }
 
         // Check if URL is available
@@ -225,5 +223,32 @@ export function createNoteRoutes(noteController) {
       }
     }
   );
+
+  router.get("/api/user-note", authenticateToken, async (req, res) => {
+    try {
+      const userId = req.user.id;
+
+      console.log('userid from /user-note', userId)
+
+      const notes = await Note.find({ owner: userId })
+        .select("url password_hash views created_at updated_at")
+        .sort({ updatedAt: -1 });
+
+      const formattedNotes = notes.map((note) => ({
+        id: note._id,
+        url: note.url,
+        lastUpdated: note.updatedAt,
+        views: note.views,
+        password: note.password_hash ? "Yes" : "No",
+      }));
+
+      res.json({ success: true, notes: formattedNotes });
+    } catch (error) {
+      console.error("Error fetching user notes:", error);
+      res
+        .status(500)
+        .json({ success: false, error: "Failed to fetch user notes" });
+    }
+  });
   return router;
 }

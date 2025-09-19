@@ -153,4 +153,5 @@ export class NoteController {
     const note = await Note.findOne({ url: noteId });
     return note && note.owner && note.owner.toString() === userId;
   }
+
 }

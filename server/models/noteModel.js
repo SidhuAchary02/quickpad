@@ -39,6 +39,7 @@ const noteSchema = new mongoose.Schema(
       ref: "User",
       default: null, // Allow anonymous notes
     },
+    views: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

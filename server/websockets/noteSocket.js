@@ -39,7 +39,10 @@ export function setupNoteSocket(io, noteController) {
             console.log(
               `👑 Claiming ownership of note ${noteId} for user ${userId}`
             );
-            await Note.updateOne({ url: noteId }, { owner: new mongoose.Types.ObjectId(userId) });
+            await Note.updateOne(
+              { url: noteId },
+              { owner: new mongoose.Types.ObjectId(userId) }
+            );
             note.owner = userId; // Update local object
           }
         }
@@ -68,11 +71,11 @@ export function setupNoteSocket(io, noteController) {
         // 🆕 Broadcast active user count to all users in the room
         const room = io.sockets.adapter.rooms.get(noteId);
         const activeCount = room ? room.size : 1;
-        
+
         console.log(`📊 Active users in note ${noteId}: ${activeCount}`);
-        io.in(noteId).emit("active-users-update", { 
-          noteId, 
-          activeCount 
+        io.in(noteId).emit("active-users-update", {
+          noteId,
+          activeCount,
         });
 
         console.log(
@@ -89,18 +92,20 @@ export function setupNoteSocket(io, noteController) {
     // 🆕 Handle leaving note room (when switching to another note)
     socket.on("leave-note", (data) => {
       const { noteId } = data;
-      
+
       if (noteId && socket.rooms.has(noteId)) {
         socket.leave(noteId);
-        
+
         // Update active count for the room they left
         const room = io.sockets.adapter.rooms.get(noteId);
         const activeCount = room ? room.size : 0;
-        
-        console.log(`📊 User ${socket.id} left note ${noteId}. Active users: ${activeCount}`);
-        io.in(noteId).emit("active-users-update", { 
-          noteId, 
-          activeCount 
+
+        console.log(
+          `📊 User ${socket.id} left note ${noteId}. Active users: ${activeCount}`
+        );
+        io.in(noteId).emit("active-users-update", {
+          noteId,
+          activeCount,
         });
       }
     });
@@ -154,20 +159,22 @@ export function setupNoteSocket(io, noteController) {
     // 🆕 Enhanced disconnect handling with active user count update
     socket.on("disconnect", () => {
       console.log(`User disconnected: ${socket.id}`);
-      
+
       if (socket.noteId) {
         // Leave the room
         socket.leave(socket.noteId);
-        
+
         // Update active count with a delay to handle page refreshes
         setTimeout(() => {
           const room = io.sockets.adapter.rooms.get(socket.noteId);
           const activeCount = room ? room.size : 0;
-          
-          console.log(`📊 After disconnect, note ${socket.noteId} has ${activeCount} active users`);
-          io.in(socket.noteId).emit("active-users-update", { 
-            noteId: socket.noteId, 
-            activeCount 
+
+          console.log(
+            `📊 After disconnect, note ${socket.noteId} has ${activeCount} active users`
+          );
+          io.in(socket.noteId).emit("active-users-update", {
+            noteId: socket.noteId,
+            activeCount,
           });
         }, 1000); // 1 second delay to handle reconnections
       }

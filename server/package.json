@@ -1,7 +1,7 @@
 {
-  "name": "server",
+  "name": "quickpad-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "A minimalist, browser-based notepad for quick, secure, and anonymous note-taking. Create and share notes instantly without an account. Each note has a unique URL, with optional password protection. Focused on simplicity, speed, and privacy, it’s ideal for jotting ideas, sharing, or collaborating—no sign-ups or installs.",
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
