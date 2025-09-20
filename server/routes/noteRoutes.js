@@ -228,10 +228,10 @@ export function createNoteRoutes(noteController) {
     try {
       const userId = req.user.id;
 
-      console.log('userid from /user-note', userId)
+      console.log("userid from /user-note", userId);
 
       const notes = await Note.find({ owner: userId })
-        .select("url password_hash views created_at updated_at")
+        .select("url password_hash views created_at updatedAt")
         .sort({ updatedAt: -1 });
 
       const formattedNotes = notes.map((note) => ({

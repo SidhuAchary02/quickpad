@@ -18,6 +18,8 @@ const AccountPanel = () => {
   const [error, setError] = useState(null);
 
   const { getToken, logout } = useAuth();
+  const isAuthenticated = Boolean(getToken());
+
 
   // Simple date formatting - much better for account panels!
   const formatSimpleDate = (dateString) => {
@@ -160,8 +162,13 @@ const AccountPanel = () => {
 
   // Fetch data on component mount
   useEffect(() => {
-    fetchUserNotes();
-  }, []);
+    if (isAuthenticated) fetchUserNotes();
+    else {
+      setNoteData([]);
+      setLoading(false);
+      // setError('You are not logged in.');
+    }
+  }, [isAuthenticated]);
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-zinc-900 p-8">
@@ -177,6 +184,7 @@ const AccountPanel = () => {
               </h1>
             </div>
 
+            {isAuthenticated ? (
             <div className="flex items-center text-sm">
               <button 
                 className="flex px-2 py-1 rounded-md items-center text-[#404040] dark:text-gray-200 space-x-1 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
@@ -194,9 +202,14 @@ const AccountPanel = () => {
                 <span>Logout</span>
               </button>
             </div>
+            ) : (
+              <div></div>
+            )}
           </div>
 
           {/* Content Area */}
+          {isAuthenticated ? (
+
           <div className="p-6">
             {/* Section Header */}
             <div className="text-center mb-8">
@@ -242,16 +255,16 @@ const AccountPanel = () => {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Password
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {/* <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Action
-                      </th>
+                      </th> */}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-zinc-700">
                     {noteData.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="px-4 py-8 text-center text-sm text-[#404040] dark:text-gray-400">
-                          No notes found. Create your first note!
+                        <td colSpan="5" className="px-4 py-8 text-center text-sm text-[#404040] dark:text-gray-400 font-semibold">
+                          No notes found. Create some notes to see them here!
                         </td>
                       </tr>
                     ) : (
@@ -259,9 +272,9 @@ const AccountPanel = () => {
                         <tr key={note.id} className="hover:bg-gray-50 hover:dark:bg-zinc-800 transition-colors">
                           <td className="px-4 py-4 whitespace-nowrap">
                             <div className="flex items-center">
-                              <span className="text-sm text-[#404040] dark:text-gray-300 font-mono">
+                              <a href={`/${note.url}`} target="_blank" className="text-sm text-[#404040] dark:text-gray-300 font-mono hover:underline cursor-pointer">
                                 {note.url}
-                              </span>
+                              </a>
                             </div>
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-[#404040] dark:text-gray-300">
@@ -273,7 +286,7 @@ const AccountPanel = () => {
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-[#404040] dark:text-gray-300">
                             {note.password}
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm">
+                          {/* <td className="px-4 py-4 whitespace-nowrap text-sm">
                             <div className="flex items-center space-x-2">
                               <button 
                                 onClick={() => handleResetPassword(note.id)}
@@ -298,7 +311,7 @@ const AccountPanel = () => {
                                 Download
                               </button>
                             </div>
-                          </td>
+                          </td> */}
                         </tr>
                       ))
                     )}
@@ -307,6 +320,12 @@ const AccountPanel = () => {
               </div>
             )}
           </div>
+          ): (
+            <div className="p-6 text-center font-bold">
+              <p className="text-sm text-[#404040] dark:text-gray-200">logged in!</p>
+              <p className="text-sm text-[#404040] dark:text-gray-300">to track notes.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

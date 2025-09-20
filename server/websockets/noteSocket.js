@@ -78,6 +78,15 @@ export function setupNoteSocket(io, noteController) {
           activeCount,
         });
 
+        try {
+          const note = await noteController.getNoteById(noteId);
+          if ((note.views ?? 0) < activeCount) {
+            await Note.updateOne({ url: noteId }, { views: activeCount });
+          }
+        } catch (error) {
+          console.error("Error updating note views:", error);
+        }
+
         console.log(
           `User ${
             socket.id
@@ -90,7 +99,7 @@ export function setupNoteSocket(io, noteController) {
     });
 
     // 🆕 Handle leaving note room (when switching to another note)
-    socket.on("leave-note", (data) => {
+    socket.on("leave-note", async (data) => {
       const { noteId } = data;
 
       if (noteId && socket.rooms.has(noteId)) {
@@ -107,6 +116,15 @@ export function setupNoteSocket(io, noteController) {
           noteId,
           activeCount,
         });
+
+        try {
+          const note = await noteController.getNoteById(noteId);
+          if ((note.views ?? 0) < activeCount) {
+            await Note.updateOne({ url: noteId }, { views: activeCount });
+          }
+        } catch (error) {
+          console.error("Error updating views for note:", error);
+        }
       }
     });
 
@@ -157,7 +175,7 @@ export function setupNoteSocket(io, noteController) {
     });
 
     // 🆕 Enhanced disconnect handling with active user count update
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
       console.log(`User disconnected: ${socket.id}`);
 
       if (socket.noteId) {
@@ -165,7 +183,7 @@ export function setupNoteSocket(io, noteController) {
         socket.leave(socket.noteId);
 
         // Update active count with a delay to handle page refreshes
-        setTimeout(() => {
+        setTimeout(async () => {
           const room = io.sockets.adapter.rooms.get(socket.noteId);
           const activeCount = room ? room.size : 0;
 
@@ -176,6 +194,19 @@ export function setupNoteSocket(io, noteController) {
             noteId: socket.noteId,
             activeCount,
           });
+
+          // Update views if current activeCount is a new high
+          try {
+            const note = await noteController.getNoteById(socket.noteId);
+            if ((note.views ?? 0) < activeCount) {
+              await Note.updateOne(
+                { url: socket.noteId },
+                { views: activeCount }
+              );
+            }
+          } catch (error) {
+            console.error("Error updating views for note:", error);
+          }
         }, 1000); // 1 second delay to handle reconnections
       }
     });
