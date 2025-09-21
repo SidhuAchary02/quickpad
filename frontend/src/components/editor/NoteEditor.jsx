@@ -1,12 +1,13 @@
 // src/components/NoteEditor.jsx
 import React, { useState, useEffect, useRef, use } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Copy, Clipboard } from "lucide-react";
+import { Copy, Clipboard, Link, Unlink, PencilLine } from "lucide-react";
 import { io } from "socket.io-client";
 import { useAuth } from "../context/AuthContext";
 import ChangeUrlModal from "./ChangeUrlModal";
 import { API_BASE_URL, SOCKET_URL } from "../../config/api";
 import { Download } from "lucide-react";
+import { Switch } from "@headlessui/react";
 import ExportMenu from "./ExportMenu";
 import ActiveUsers from "./ActiveUsers";
 
@@ -28,6 +29,8 @@ function NoteEditor() {
 
   const [content, setContent] = useState("");
   const [updatedAt, setUpdatedAt] = useState(null);
+
+  const [readOnly, setReadOnly] = useState(false);
 
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
@@ -104,6 +107,7 @@ function NoteEditor() {
       setDocument(data.content);
       setHasPassword(data.hasPassword);
       setIsOwner(data.isOwner || false);
+      setReadOnly(data.readOnly || false); // ← NEW
       setIsLoading(false); // Set LOCAL loading to false when content received
 
       if (!data.hasPassword) {
@@ -136,6 +140,12 @@ function NoteEditor() {
     newSocket.on("note-settings-updated", (data) => {
       if (!isMountedRef.current) return;
       setHasPassword(data.hasPassword);
+
+      if (data.readOnly !== undefined) {
+        setReadOnly(data.readOnly);
+        console.log("received readOnly update:", data.readOnly);
+      }
+
       if (!data.hasPassword) {
         setNoteAuthenticated(true);
       }
@@ -201,25 +211,6 @@ function NoteEditor() {
     if (socket) {
       socket.emit("auth", { noteId: id, password });
     }
-  };
-
-  const handleChange = (e) => {
-    const newDocument = e.target.value;
-    setDocument(newDocument);
-
-    if (saveTimeout) clearTimeout(saveTimeout);
-
-    const timeout = setTimeout(() => {
-      if (socket && (noteAuthenticated || !hasPassword)) {
-        socket.emit("update-content", { noteId: id, content: newDocument });
-        setIsSaving(true);
-        setTimeout(() => {
-          if (isMountedRef.current) setIsSaving(false);
-        }, 1000);
-      }
-    }, 1000);
-
-    setSaveTimeout(timeout);
   };
 
   const copyUrl = () => {
@@ -299,6 +290,82 @@ function NoteEditor() {
     };
   }, [saveTimeout]);
 
+  // Load note metadata including readOnly state
+  useEffect(() => {
+    const loadNote = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/notes/${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setContent(data.content);
+          setUpdatedAt(data.updatedAt);
+          setReadOnly(data.readOnly || false); // Set readOnly state here
+        }
+      } catch (error) {
+        console.error("Failed to load note:", error);
+      }
+    };
+    if (id) loadNote();
+  }, [id, document]);
+
+  console.log("readOnly:", readOnly, "isOwner:", isOwner);
+  const canEdit = !readOnly || isOwner;
+  console.log("canEdit:", canEdit);
+
+  const toggleReadOnly = async () => {
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_BASE_URL}/api/notes/${id}/read-only`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ readOnly: !readOnly }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setReadOnly(data.readOnly);
+
+        // ← ADD THIS: Broadcast to other users via socket
+        if (socket) {
+          socket.emit("readonly-changed", {
+            noteId: id,
+            readOnly: data.readOnly,
+            hasPassword: hasPassword, // include existing state
+          });
+        }
+
+        // alert(`Read-only mode ${data.readOnly ? "enabled" : "disabled"}.`);
+      } else {
+        alert(data.error || "Failed to update read-only mode.");
+      }
+    } catch (e) {
+      alert("Error updating read-only flag.");
+    }
+  };
+
+  // Update backend note readOnly flag (call API)
+  const handleChange = (e) => {
+    if (!canEdit) return;
+    const newDocument = e.target.value;
+    setDocument(newDocument);
+
+    if (saveTimeout) clearTimeout(saveTimeout);
+
+    const timeout = setTimeout(() => {
+      if (socket && (noteAuthenticated || !hasPassword)) {
+        socket.emit("update-content", { noteId: id, content: newDocument });
+        setIsSaving(true);
+        setTimeout(() => {
+          if (isMountedRef.current) setIsSaving(false);
+        }, 1000);
+      }
+    }, 1000);
+
+    setSaveTimeout(timeout);
+  };
+
   if (authLoading) {
     return (
       <div className="text-center p-12 text-lg text-gray-700">Loading...</div>
@@ -310,30 +377,27 @@ function NoteEditor() {
   }
 
   return (
-    <div className="max-w-[800px] mx-auto p-5 dark:text-white text-[#404040] text-center">
+    <div className="max-w-4xl mx-auto p-5 dark:text-white text-[#404040] text-center">
       <div className="flex items-center justify-between  border-gray-300 dark:border-zinc-700 pb-4">
-        <div className="flex item-center gap-2">
-          <h1 className="text-xl font-semibold">id: {id}</h1>
-          <button
-            className="flex items-center gap-1 rounded-md p-1 cursor-pointer dark:hover:bg-zinc-800 transition-colors"
-            onClick={copyUrl}
-            title="copy note url"
-          >
-            {copied ? (
-              <Clipboard className="w-4 h-4" />
-            ) : (
-              <Copy className="w-4 h-4" />
-            )}
-          </button>
-          {/* Export Button */}
-          <button
-            onClick={() => setShowExportMenu(true)}
-            className="rounded-md p-1 cursor-pointer dark:hover:bg-zinc-800 transition-colors"
-            title="Export note"
-          >
-            <Download className="w-4 h-4" />
-          </button>
+        <div className="flex gap-2">
           <ActiveUsers socket={socket} noteId={id} />
+          {/* User status indicator */}
+          {userLoggedIn && (
+            <div className="flex justify-between items-center">
+              <div className="mb-3 text-[#404040] dark:text-zinc-400 text-sm flex items-center gap-2">
+                {isOwner && (
+                  <span className="bg-gray-50 dark:bg-zinc-700 border border-[#cececf] dark:border-zinc-600 font-semibold text-[#404040] dark:text-gray-200 px-2 py-1 rounded-full text-sm">
+                    Owner
+                  </span>
+                )}
+                {hasPassword && (
+                  <span className="bg-gray-50 dark:bg-zinc-700 border border-[#cececf] dark:border-zinc-600 font-semibold text-[#404040] dark:text-gray-200 px-2 py-1 rounded-full text-sm">
+                    Protected
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {isSaving && (
@@ -342,75 +406,97 @@ function NoteEditor() {
             </span>
           )}
 
+          <button
+            className="bg-transparent border border-[#cececf] dark:border-zinc-600 font-semibold text-[#404040] dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-zinc-700 px-2 py-2 rounded-lg text-sm cursor-pointer"
+            onClick={copyUrl}
+            title="copy note url"
+          >
+            {copied ? (
+              <Clipboard className="w-5 h-5" />
+            ) : (
+              <Copy className="w-5 h-5" />
+            )}
+          </button>
+          {/* Export Button */}
+          <button
+            onClick={() => setShowExportMenu(true)}
+            className="bg-transparent border border-[#cececf] dark:border-zinc-600 font-semibold text-[#404040] dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-zinc-700 px-2 py-2 rounded-lg text-sm cursor-pointer"
+            title="Export note"
+          >
+            <Download className="w-5 h-5" />
+          </button>
+
           {/* Password Icon - Only show for owners */}
           {userLoggedIn && isOwner && (
             <div className="flex items-center gap-1">
               {hasPassword ? (
                 <button
                   onClick={removePassword}
-                  className="bg-white border border-[#cececf] font-semibold text-[#404040] hover:bg-gray-50 px-3 py-2 rounded-lg text-sm cursor-pointer"
+                  className="bg-transparent border border-[#cececf] dark:border-zinc-600 font-semibold text-[#404040] dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-zinc-700 px-2 py-2 rounded-lg text-sm cursor-pointer"
                   title="Remove password protection"
                 >
-                  Remove Password
+                  <Unlink className="w-5 h-5" />
                 </button>
               ) : (
                 <button
                   onClick={() => setShowPasswordModal(true)}
-                  className="bg-white border border-[#cececf] font-semibold text-[#404040] hover:bg-gray-50 px-3 py-2 rounded-lg text-sm cursor-pointer"
+                  className="bg-transparent border border-[#cececf] dark:border-zinc-600 font-semibold text-[#404040] dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-zinc-700 px-2 py-2 rounded-lg text-sm cursor-pointer"
                   title="Add password protection"
                 >
-                  Add Password
+                  <Link className="w-5 h-5" />
                 </button>
               )}
+              <button
+                onClick={() => setShowChangeUrlModal(true)}
+                className="bg-transparent border border-[#cececf] dark:border-zinc-600 font-semibold text-[#404040] dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-zinc-700 px-2 py-2 rounded-lg text-sm cursor-pointer"
+                title="Change note URL"
+              >
+                <PencilLine className="w-5 h-5" />
+              </button>
+              <div className="flex items-center gap-2 bg-white border border-gray-300 dark:bg-zinc-900 dark:border-zinc-600 rounded-lg px-2 py-2">
+                <label
+                  htmlFor="readonly-toggle"
+                  className="text-sm font-bold text-[#404040] dark:text-zinc-200"
+                >
+                  Read-Only
+                </label>
+                <Switch
+                  id="readonly-toggle"
+                  checked={readOnly}
+                  onChange={toggleReadOnly}
+                  className={`${
+                    readOnly ? "bg-green-600" : "bg-gray-300 dark:bg-zinc-600"
+                  } relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer`}
+                >
+                  <span className="sr-only">Toggle read-only mode</span>
+                  <span
+                    className={`${
+                      readOnly ? "translate-x-4" : "translate-x-1"
+                    } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                  />
+                </Switch>
+              </div>
             </div>
-          )}
-
-          {/* Change URL Button - Only show for owners */}
-          {userLoggedIn && isOwner && (
-            <button
-              onClick={() => setShowChangeUrlModal(true)}
-              className="bg-white border border-[#cececf] font-semibold text-[#404040] hover:bg-gray-50 px-3 py-2 rounded-lg text-sm cursor-pointer"
-              title="Change note URL"
-            >
-              Change URL
-            </button>
           )}
         </div>
       </div>
-
-      {/* User status indicator */}
-      {userLoggedIn && (
-        <div className="justify-between items-center">
-          <div className="mb-3 text-[#404040] dark:text-zinc-400 text-sm flex items-center gap-2">
-            {isOwner && (
-              <span className="bg-gray-100 dark:bg-zinc-300 border border-gray-200 text-gray-800 px-2 py-1 rounded-full text-xs font-semibold">
-                Owner
-              </span>
-            )}
-            {hasPassword && (
-              <span className="bg-gray-100 dark:bg-zinc-300 border border-gray-200 text-gray-800 px-2 py-1 rounded-full text-xs font-semibold">
-                Protected
-              </span>
-            )}
-            <div>
-              <span className="font-semibold dark:text-zinc-300">
-                {document.length}
-              </span>{" "}
-              characters
-            </div>
-          </div>
+      <div className="flex justify-between items-center mb-1">
+        {/* Simple last updated display */}
+        {updatedAt && (
+          <p className="text-left text-sm text-[#404040] dark:text-zinc-400 mb-1">
+            {formatSimpleDate(updatedAt)}
+          </p>
+        )}
+        <div className="text-sm p-1">
+          <span className="text-[#404040] dark:text-zinc-400">Chars:</span>{" "}
+          <span className="font-semibold text-[#404040] dark:text-zinc-200">
+            {document.length}
+          </span>
         </div>
-      )}
-
-      {/* Simple last updated display */}
-      {updatedAt && (
-        <p className="text-left text-sm text-gray-500 dark:text-zinc-400 mb-1">
-          {formatSimpleDate(updatedAt)}
-        </p>
-      )}
+      </div>
 
       {hasPassword && !noteAuthenticated ? (
-        <div className="max-w-md mx-auto p-8 bg-white border border-gray-300 dark:bg-zinc-800 dark:border-zinc-700 rounded-lg text-center">
+        <div className="max-w-md mx-auto p-8 bg-gray-50 border border-gray-300 dark:bg-zinc-800 dark:border-zinc-700 rounded-lg text-center my-28">
           <p className="mb-5 flex items-center justify-center gap-2 text-[#404040] dark:text-gray-200 font-semibold">
             This note is password protected
           </p>
@@ -419,7 +505,7 @@ function NoteEditor() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter password"
-            className="w-full p-3 mb-5 border border-gray-300 rounded text-base text-[#404040] dark:text-gray-200 placeholder-gray-500 focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-500"
+            className="w-full p-3 mb-5 border border-gray-300 dark:border-zinc-600 rounded text-base text-[#404040] dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-500"
             onKeyPress={(e) => e.key === "Enter" && authenticate()}
             required
           />
@@ -440,38 +526,17 @@ function NoteEditor() {
           ref={textareaRef}
           value={document}
           onChange={handleChange}
+          disabled={!canEdit}
           rows="20"
           cols="80"
-          placeholder="Start typing..."
-          className="w-full min-h-[500px] p-4 border border-[#cececf] dark:border-zinc-700 rounded-lg shadow-md leading-relaxed resize-y outline-none dark:text-white text-[#404040] focus:ring-[#cececf] font-mono"
+          placeholder={canEdit ? "Start typing..." : "Read-only mode enabled"}
+          className={`w-full min-h-[500px] p-4 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-md font-mono leading-relaxed resize-y outline-none ${
+            canEdit
+              ? " text-[#404040] dark:text-white focus:ring-[#cececf]"
+              : "bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400"
+          }`}
         />
       )}
-
-      {/* Footer Section */}
-      <footer className="border-t border-gray-200 dark:border-zinc-700 py-6 mt-16">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="mb-1 text-[#404040] dark:text-zinc-400">
-            Built by{" "}
-            <a
-              href="https://github.com/SidhuAchary02"
-              target="_blank"
-              className="font-semibold hover:underline text-[#404040] dark:text-zinc-200"
-            >
-              @SidhuAchary02
-            </a>
-          </p>
-          <p className="text-[#404040] dark:text-zinc-400">
-            quickpad is open-source on{" "}
-            <a
-              href="https://github.com/SidhuAchary02/quickpad"
-              target="_blank"
-              className="font-medium hover:underline text-[#404040] dark:text-zinc-200"
-            >
-              Github
-            </a>
-          </p>
-        </div>
-      </footer>
 
       {/* Export Menu Modal */}
       <ExportMenu

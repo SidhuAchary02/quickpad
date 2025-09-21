@@ -57,10 +57,7 @@ function Navbar() {
 
       <div className="flex items-center gap-2">
         {isAuthenticated ? (
-          <div className="flex items-center gap-4">
-            <span className="text-[#404040] dark:text-white font-semibold underline">
-              Welcome, {user.username}!
-            </span>
+          <div className="flex items-center">
             <button
               className="text-[#404040] dark:text-white font-semibold border border-[#cececf] dark:border-zinc-600 hover:bg-gray-50 dark:hover:bg-zinc-800 bg-transparent px-4 py-1 rounded-lg transition-colors cursor-pointer"
               onClick={logout}

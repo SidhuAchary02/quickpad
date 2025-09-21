@@ -40,6 +40,7 @@ const noteSchema = new mongoose.Schema(
       default: null, // Allow anonymous notes
     },
     views: { type: Number, default: 0 },
+    readOnly: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

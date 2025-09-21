@@ -45,7 +45,7 @@ const ExportMenu = ({ content, noteUrl, isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-1100">
       <div className="bg-white dark:bg-zinc-800 rounded-lg p-6 w-96 max-w-md mx-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -64,7 +64,7 @@ const ExportMenu = ({ content, noteUrl, isOpen, onClose }) => {
           <button
             onClick={() => handleExport("txt")}
             disabled={isExporting}
-            className="w-full flex items-center gap-3 p-3 border border-gray-200 dark:border-zinc-600 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50"
+            className="w-full flex items-center gap-3 p-3 border border-gray-200 dark:border-zinc-600 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 cursor-pointer"
           >
             <FileText className="w-5 h-5 text-blue-500" />
             <div className="flex-1 text-left">
@@ -84,7 +84,7 @@ const ExportMenu = ({ content, noteUrl, isOpen, onClose }) => {
           <button
             onClick={() => handleExport("pdf-simple")}
             disabled={isExporting}
-            className="w-full flex items-center gap-3 p-3 border border-gray-200 dark:border-zinc-600 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50"
+            className="w-full flex items-center gap-3 p-3 border border-gray-200 dark:border-zinc-600 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 cursor-pointer"
           >
             <File className="w-5 h-5 text-red-500" />
             <div className="flex-1 text-left">

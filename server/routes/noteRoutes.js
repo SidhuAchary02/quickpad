@@ -36,6 +36,7 @@ export function createNoteRoutes(noteController) {
         content: note.content,
         updatedAt: note.updatedAt,
         hasPassword: !!note.password_hash,
+        readOnly: note.readOnly || false,
       });
     } catch (error) {
       console.log("error fetching note by id:", error);
@@ -250,5 +251,28 @@ export function createNoteRoutes(noteController) {
         .json({ success: false, error: "Failed to fetch user notes" });
     }
   });
+
+  router.put(
+    "/api/notes/:id/read-only",
+    authenticateToken,
+    async (req, res) => {
+      const { id } = req.params;
+      const { readOnly } = req.body;
+      const userId = req.user.id;
+
+      const note = await Note.findOne({ url: id });
+      if (!note) return res.status(404).json({ error: "Note not found" });
+
+      if (!note.owner || note.owner.toString() !== userId) {
+        return res.status(403).json({ error: "Not authorized" });
+      }
+
+      note.readOnly = !!readOnly;
+      await note.save();
+
+      res.json({ success: true, readOnly: note.readOnly });
+    }
+  );
+
   return router;
 }

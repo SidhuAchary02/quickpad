@@ -66,6 +66,7 @@ export function setupNoteSocket(io, noteController) {
           content: note.content,
           hasPassword: !!note.password_hash,
           isOwner: isOwner,
+          readOnly: note.readOnly || false,
         });
 
         // 🆕 Broadcast active user count to all users in the room
@@ -149,6 +150,15 @@ export function setupNoteSocket(io, noteController) {
     socket.on("update-content", async (data) => {
       const { noteId, content } = data;
 
+      const note = await noteController.getNoteById(noteId);
+      const isOwner =
+        note.owner && socket.userId && note.owner.toString() === socket.userId;
+
+      if (note.readOnly && !isOwner) {
+        socket.emit("error", "Note is read-only");
+        return;
+      }
+
       try {
         // Check if note is protected and user is authenticated
         const note = await noteController.getNoteById(noteId);
@@ -157,9 +167,18 @@ export function setupNoteSocket(io, noteController) {
           return;
         }
 
+        // ← ADD THIS: Check readOnly permissions
+        const isOwner =
+          note.owner &&
+          socket.userId &&
+          note.owner.toString() === socket.userId;
+        if (note.readOnly && !isOwner) {
+          socket.emit("error", "Note is read-only. Editing is not permitted.");
+          return;
+        }
+
         // Update in database
         await noteController.updateNoteContent(noteId, content);
-
         // Broadcast to all users in the room
         socket.to(noteId).emit("content-updated", { content });
       } catch (error) {
@@ -172,6 +191,15 @@ export function setupNoteSocket(io, noteController) {
     socket.on("password-changed", (data) => {
       const { noteId, hasPassword } = data;
       socket.to(noteId).emit("note-settings-updated", { hasPassword });
+    });
+
+    // Add this new event handler after "password-changed"
+    socket.on("readonly-changed", (data) => {
+      const { noteId, readOnly } = data;
+      socket.to(noteId).emit("note-settings-updated", {
+        hasPassword: data.hasPassword, // keep existing
+        readOnly: readOnly, // ← ADD THIS
+      });
     });
 
     // 🆕 Enhanced disconnect handling with active user count update
